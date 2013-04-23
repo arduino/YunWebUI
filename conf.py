@@ -84,7 +84,7 @@ def read_conf():
   return conf
 
 def read_ifconfig_for(interface):
-  mo = re.search(r'^(?P<interface>[a-z0-9]+)\s+' +
+  mo = re.search(r'^(?P<interface>[a-z0-9\-]+)\s+' +
                  r'Link encap:(?P<link_encap>\S+)\s+' +
                  r'(HWaddr\s+(?P<hardware_address>\S+))?' +
                  r'(\s+inet addr:(?P<ip_address>\S+))?' +

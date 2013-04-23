@@ -4,7 +4,7 @@ import hashlib
 from bottle import route, run, template, static_file, request, response, error, hook
 import conf
 
-VIEWS_ROOT = "/www/web_panel/views/"
+VIEWS_ROOT = "/www/webpanel/views/"
 if os.environ.get("VIEWS_ROOT") != None:
   VIEWS_ROOT = os.environ["VIEWS_ROOT"] + VIEWS_ROOT
 
@@ -88,4 +88,4 @@ def upload_sketch():
   finally:
     os.remove("/tmp/" + upload.filename)
 
-run(host='localhost', port=6571, reloader=True)
+run(host='0.0.0.0', port=6571, reloader=True)
