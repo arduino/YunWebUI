@@ -65,6 +65,8 @@ def update_conf(conf):
     set_config_value(UCI_KEY_WIFI_ENCRYPTION, conf["wifi.encryption"].replace(" ", "_"))
   if conf["wifi.password"].strip() != "":
     set_config_value(UCI_KEY_WIFI_PWD, conf["wifi.password"])
+  if conf["wifi.country"].strip() != "":
+    set_config_value(UCI_KEY_WIFI_COUNTRY, conf["wifi.country"])
 
   del_config(UCI_LAN_IFNAME)
   del_config(UCI_LAN_TYPE)
