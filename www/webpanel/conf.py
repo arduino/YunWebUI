@@ -19,10 +19,17 @@ UCI_LAN_IPADDR="network.lan.ipaddr"
 UCI_LAN_NETMASK="network.lan.netmask"
 
 def get_config_value(key):
-  proc = subprocess.Popen(args=["uci", "get", key], bufsize=1, stdout=subprocess.PIPE)
-  returncode = proc.wait()
-  value = proc.stdout.read()
-  return value.splitlines()[0]
+  try:
+    value = subprocess.check_output(["uci", "get", key])
+    value = value.strip()
+
+    if value == "":
+      return value
+
+    value = value.splitlines()[0]
+    return value
+  except subprocess.CalledProcessError as e: 
+    return ""
 
 def set_config_value(key, value):
   proc = subprocess.Popen(args=["uci", "set", key + "=" + value], bufsize=1)
