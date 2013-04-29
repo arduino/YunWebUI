@@ -4,74 +4,48 @@ import subprocess
 import re
 import os
 
-ARDUINO_CONF = "/etc/arduino.conf"
-SYSTEM_CONF = "/etc/config/system"
-WIFI_CONF = "/etc/config/wireless"
-NETWORK_CONFIGURED_CONF = "/etc/config/configured/network"
-NETWORK_CONF = "/etc/config/network"
+UCI_KEY_PWD="arduino.@arduino[0].password"
+UCI_KEY_HOSTNAME="system.@system[0].hostname"
+UCI_KEY_WIFI_CHANNEL="wireless.radio0.channel"
+UCI_KEY_WIFI_SSID="wireless.@wifi-iface[0].ssid"
+UCI_KEY_WIFI_ENCRYPTION="wireless.@wifi-iface[0].encryption"
+UCI_KEY_WIFI_PWD="wireless.@wifi-iface[0].key"
+UCI_KEY_WIFI_MODE="wireless.@wifi-iface[0].mode"
 
-def read_file(filename):
-  with open(filename) as f:
-    lines = f.read().splitlines()
-    return lines
+def get_config_value(key):
+  proc = subprocess.Popen(args=["uci", "get", key], bufsize=1, stdout=subprocess.PIPE)
+  returncode = proc.wait()
+  value = proc.stdout.read()
+  return value.splitlines()[0]
 
-def write_file(filename, data):
-  for index, line in enumerate(data):
-    if len(line) == 0 or line[len(line) - 1] != "\n":
-      data[index] = line + "\n"
-  with open(filename, "w") as f:
-    f.writelines(data)
-
-def get_conf_by_key(conf, key, sep):
-  key_length = len(key)
-  for line in conf:
-    if line.find(key) == 0:
-      value = line[line.find(sep, key_length) + 1:].strip()
-      return value
-  return ""
-
-def set_conf_by_key(conf, key, sep, value):
-  key_length = len(key)
-  for index, line in enumerate(conf):
-    if line.find(key) == 0:
-      line = key + sep + value
-      conf[index] = line
+def set_config_value(key, value):
+  proc = subprocess.Popen(args=["uci", "set", key + "=" + value], bufsize=1)
+  proc.wait()
 
 def get_stored_password():
-  return get_conf_by_key(read_file(ARDUINO_CONF), "password", "=")
+  return get_config_value(UCI_KEY_PWD)
 
-def modify_wireless_configuration_files(conf):
+def update_conf(conf):
   if conf["password"].strip() != "":
-    config = read_file(ARDUINO_CONF)
-    set_conf_by_key(config, "password", "=", hashlib.sha512(conf["password"]).hexdigest())
-    write_file(ARDUINO_CONF, config)
-    config = read_file(ARDUINO_CONF)
+    set_config_value(UCI_KEY_PWD
 
   if conf["hostname"].strip() != "":
-    system_config = read_file(SYSTEM_CONF)
-    set_conf_by_key(system_config, "\toption hostname", "\t", conf["hostname"].replace(" ", "_"))
-    write_file(SYSTEM_CONF, system_config)
-    system_config = read_file(SYSTEM_CONF)
+    set_config_value(UCI_KEY_HOSTNAME, conf["hostname"].replace(" ", "_"))
 
-  wifi_config = read_file(WIFI_CONF)
+  set_config_value(UCI_KEY_WIFI_CHANNEL, "auto")
+  set_config_value(UCI_KEY_WIFI_MODE, "sta")
   if conf["wifi.ssid"].strip() != "":
-    set_conf_by_key(wifi_config, "\toption ssid", " ", "'" + conf["wifi.ssid"].replace(" ", "_") + "'")
+    set_config_value(UCI_KEY_WIFI_SSID, conf["wifi.ssid"].replace(" ", "_"))
   if conf["wifi.encryption"].strip() != "":
-    set_conf_by_key(wifi_config, "\toption encryption", " ", "'" + conf["wifi.encryption"].replace(" ", "_") + "'")
+    set_config_value(UCI_KEY_WIFI_ENCRYPTION, conf["wifi.encryption"].replace(" ", "_"))
   if conf["wifi.password"].strip() != "":
-    set_conf_by_key(wifi_config, "\toption key", " ", "'" + conf["wifi.password"] + "'")
-  set_conf_by_key(wifi_config, "\toption mode", " ", "'sta'")
-  write_file(WIFI_CONF, wifi_config)
-  shutil.copy2(NETWORK_CONFIGURED_CONF, NETWORK_CONF)
+    set_config_value(UCI_KEY_WIFI_PWD, conf["wifi.password"])
 
 def read_conf():
-  system_config_file = read_file(SYSTEM_CONF)
-  hostname = get_conf_by_key(system_config_file, "\toption hostname", "\t")
-
-  wireless_config_file = read_file("/etc/config/wireless")
-  ssid = get_conf_by_key(wireless_config_file, "\toption ssid", " ").replace("'", "")
-  encryption = get_conf_by_key(wireless_config_file, "\toption encryption", " ").replace("'", "")
-  password = get_conf_by_key(wireless_config_file, "\toption key", " ").replace("'", "")
+  hostname = get_config_value(UCI_KEY_HOSTNAME)
+  ssid = get_config_value(UCI_KEY_WIFI_SSID)
+  encryption = get_config_value(UCI_KEY_WIFI_ENCRYPTION)
+  password = get_config_value(UCI_KEY_WIFI_PWD)
 
   conf = {
     "hostname": hostname,

@@ -49,7 +49,7 @@ def index():
 @route("/config", method="POST")
 def configure():
 #  try:
-  conf.modify_wireless_configuration_files(request.forms)
+  conf.update_conf(request.forms)
   redirect("/config")
 #  except Exception as e:
 #    raise e
@@ -88,4 +88,4 @@ def upload_sketch():
   finally:
     os.remove("/tmp/" + upload.filename)
 
-run(host='0.0.0.0', port=6571, reloader=True)
+run(host='0.0.0.0', port=6571)
