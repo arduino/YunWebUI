@@ -6,11 +6,17 @@ import os
 
 UCI_KEY_PWD="arduino.@arduino[0].password"
 UCI_KEY_HOSTNAME="system.@system[0].hostname"
+
 UCI_KEY_WIFI_CHANNEL="wireless.radio0.channel"
 UCI_KEY_WIFI_SSID="wireless.@wifi-iface[0].ssid"
 UCI_KEY_WIFI_ENCRYPTION="wireless.@wifi-iface[0].encryption"
 UCI_KEY_WIFI_PWD="wireless.@wifi-iface[0].key"
 UCI_KEY_WIFI_MODE="wireless.@wifi-iface[0].mode"
+
+UCI_LAN_TYPE="network.lan.type"
+UCI_LAN_PROTO="network.lan.proto"
+UCI_LAN_IPADDR="network.lan.ipaddr"
+UCI_LAN_NETMASK="network.lan.netmask"
 
 def get_config_value(key):
   proc = subprocess.Popen(args=["uci", "get", key], bufsize=1, stdout=subprocess.PIPE)
@@ -20,6 +26,10 @@ def get_config_value(key):
 
 def set_config_value(key, value):
   proc = subprocess.Popen(args=["uci", "set", key + "=" + value], bufsize=1)
+  proc.wait()
+
+def del_config(key):
+  proc = subprocess.Popen(args=["uci", "delete", key], bufsize=1)
   proc.wait()
 
 def get_stored_password():
@@ -40,6 +50,11 @@ def update_conf(conf):
     set_config_value(UCI_KEY_WIFI_ENCRYPTION, conf["wifi.encryption"].replace(" ", "_"))
   if conf["wifi.password"].strip() != "":
     set_config_value(UCI_KEY_WIFI_PWD, conf["wifi.password"])
+
+  det_config(UCI_LAN_TYPE)
+  set_config_value(UCI_LAN_PROTO, "dhcp")
+  det_config(UCI_LAN_IPADDR)
+  det_config(UCI_LAN_NETMASK)
 
 def read_conf():
   hostname = get_config_value(UCI_KEY_HOSTNAME)
