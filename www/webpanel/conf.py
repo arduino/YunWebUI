@@ -37,7 +37,7 @@ def get_stored_password():
 
 def update_conf(conf):
   if conf["password"].strip() != "":
-    set_config_value(UCI_KEY_PWD
+    set_config_value(UCI_KEY_PWD, hashlib.sha512(conf["password"]).hexdigest())
 
   if conf["hostname"].strip() != "":
     set_config_value(UCI_KEY_HOSTNAME, conf["hostname"].replace(" ", "_"))
