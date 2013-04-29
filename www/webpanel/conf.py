@@ -32,6 +32,10 @@ def del_config(key):
   proc = subprocess.Popen(args=["uci", "delete", key], bufsize=1)
   proc.wait()
 
+def uci_commit():
+  proc = subprocess.Popen(args=["uci", "commit"], bufsize=1)
+  proc.wait()
+
 def get_stored_password():
   return get_config_value(UCI_KEY_PWD)
 
@@ -55,6 +59,7 @@ def update_conf(conf):
   set_config_value(UCI_LAN_PROTO, "dhcp")
   det_config(UCI_LAN_IPADDR)
   det_config(UCI_LAN_NETMASK)
+  uci_commit()
 
 def read_conf():
   hostname = get_config_value(UCI_KEY_HOSTNAME)
