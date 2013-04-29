@@ -1,3 +1,5 @@
+# coding=UTF-8
+
 import hashlib
 import shutil
 import subprocess
@@ -8,11 +10,13 @@ UCI_KEY_PWD="arduino.@arduino[0].password"
 UCI_KEY_HOSTNAME="system.@system[0].hostname"
 
 UCI_KEY_WIFI_CHANNEL="wireless.radio0.channel"
+UCI_KEY_WIFI_COUNTRY="wireless.radio0.country"
 UCI_KEY_WIFI_SSID="wireless.@wifi-iface[0].ssid"
 UCI_KEY_WIFI_ENCRYPTION="wireless.@wifi-iface[0].encryption"
 UCI_KEY_WIFI_PWD="wireless.@wifi-iface[0].key"
 UCI_KEY_WIFI_MODE="wireless.@wifi-iface[0].mode"
 
+UCI_LAN_IFNAME="network.lan.ifname"
 UCI_LAN_TYPE="network.lan.type"
 UCI_LAN_PROTO="network.lan.proto"
 UCI_LAN_IPADDR="network.lan.ipaddr"
@@ -56,16 +60,17 @@ def update_conf(conf):
   set_config_value(UCI_KEY_WIFI_CHANNEL, "auto")
   set_config_value(UCI_KEY_WIFI_MODE, "sta")
   if conf["wifi.ssid"].strip() != "":
-    set_config_value(UCI_KEY_WIFI_SSID, conf["wifi.ssid"].replace(" ", "_"))
+    set_config_value(UCI_KEY_WIFI_SSID, conf["wifi.ssid"])
   if conf["wifi.encryption"].strip() != "":
     set_config_value(UCI_KEY_WIFI_ENCRYPTION, conf["wifi.encryption"].replace(" ", "_"))
   if conf["wifi.password"].strip() != "":
     set_config_value(UCI_KEY_WIFI_PWD, conf["wifi.password"])
 
+  del_config(UCI_LAN_IFNAME)
   del_config(UCI_LAN_TYPE)
+  del_config(UCI_LAN_IPADDR)
+  del_config(UCI_LAN_NETMASK)
   set_config_value(UCI_LAN_PROTO, "dhcp")
-  #del_config(UCI_LAN_IPADDR)
-  #del_config(UCI_LAN_NETMASK)
   uci_commit()
 
 def read_conf():
@@ -73,13 +78,15 @@ def read_conf():
   ssid = get_config_value(UCI_KEY_WIFI_SSID)
   encryption = get_config_value(UCI_KEY_WIFI_ENCRYPTION)
   password = get_config_value(UCI_KEY_WIFI_PWD)
+  country = get_config_value(UCI_KEY_WIFI_COUNTRY)
 
   conf = {
     "hostname": hostname,
     "wifi": {
       "ssid": ssid,
       "encryption": encryption,
-      "password": password
+      "password": password,
+      "country": country
     }
   }
   return conf

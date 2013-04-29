@@ -12,6 +12,20 @@ Set up a password: this will be used the next time you'll access the web panel a
 DogStick password: <input type="password" name="password"/><br/>
 <br/>
 Set up your wireless<br/>
+Country: <select name="wifi.country">
+<option value="00" 
+%if wifi['country'] == '00': 
+selected 
+%end
+>Rest of the world</option>
+%for code in countries.keys():
+  <option value="{{code}}" 
+%if wifi['country'] == code: 
+selected 
+%end
+>{{countries[code]}}</option>
+%end
+</select><br/>
 SSID: <input type="text" name="wifi.ssid" value="{{wifi['ssid']}}"/><br/>
 Encryption: <select name="wifi.encryption">
 <option value="none" 
