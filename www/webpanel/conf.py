@@ -62,10 +62,10 @@ def update_conf(conf):
   if conf["wifi.password"].strip() != "":
     set_config_value(UCI_KEY_WIFI_PWD, conf["wifi.password"])
 
-  det_config(UCI_LAN_TYPE)
+  del_config(UCI_LAN_TYPE)
   set_config_value(UCI_LAN_PROTO, "dhcp")
-  det_config(UCI_LAN_IPADDR)
-  det_config(UCI_LAN_NETMASK)
+  #del_config(UCI_LAN_IPADDR)
+  #del_config(UCI_LAN_NETMASK)
   uci_commit()
 
 def read_conf():
