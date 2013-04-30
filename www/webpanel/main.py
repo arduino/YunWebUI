@@ -6,6 +6,7 @@ import hashlib
 from bottle import route, run, template, static_file, request, response, error, hook
 from collections import OrderedDict
 import conf
+import priviliges
 
 VIEWS_ROOT = "/www/webpanel/views/"
 if os.environ.get("VIEWS_ROOT") != None:
@@ -74,7 +75,7 @@ def upload_sketch():
       sketch = f.readlines()
     # removing sketch last line
     sketch = sketch[:len(sketch) - 1]
-    with open("/etc/config/Caterina-Leonardo.hex", "r") as f:
+    with open("/etc/arduino/Caterina-Leonardo.hex", "r") as f:
       bootloader = f.readlines()
     # appending bootloader to sketch
     sketch = sketch + bootloader
@@ -82,8 +83,9 @@ def upload_sketch():
     with open("/tmp/" + upload.filename, "w") as f:
       f.writelines(sketch)
 
-    command = ["avrdude", "-C/arduino/tools/avrdude.conf", "-q", "-q", "-patmega32u4", "-cavr109", "-P/dev/ttyACM0", "-b57600", "-D", "-Uflash:w:/tmp/" + upload.filename + ":i"]
-    command = ["echo"] + command
+    #command = ["avrdude", "-C/etc/avrdude.conf", "-q", "-q", "-patmega32u4", "-cavr109", "-P/dev/ttyACM0", "-b57600", "-D", "-Uflash:w:/tmp/" + upload.filename + ":i"]
+    command = ["avrdude", "-C/etc/avrdude.conf", "-q", "-q", "-pm328p", "-clinuxgpio", "-Uflash:w:/tmp/" + upload.filename + ":i"]
+    #command = ["echo"] + command
     proc = subprocess.Popen(args=command, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     returncode = proc.wait()
     print proc.stdout.read()
@@ -92,4 +94,4 @@ def upload_sketch():
   finally:
     os.remove("/tmp/" + upload.filename)
 
-run(host='0.0.0.0', port=6571)
+run(host='0.0.0.0', port=80)
