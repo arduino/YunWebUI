@@ -55,6 +55,7 @@ def index():
 def configure():
 #  try:
   conf.update_conf(request.forms)
+  subprocess.call("reboot")
   redirect("/config")
 #  except Exception as e:
 #    raise e
