@@ -74,8 +74,9 @@ def upload_sketch():
     with open("/tmp/" + upload.filename, "r") as f:
       sketch = f.readlines()
     # removing sketch last line
-    sketch = sketch[:len(sketch) - 1]
-    with open("/etc/arduino/Caterina-Leonardo.hex", "r") as f:
+    sketch = sketch[:-1]
+    #with open("/etc/arduino/Caterina-Leonardo.hex", "r") as f:
+    with open("/etc/arduino/optiboot_atmega328.hex", "r") as f:
       bootloader = f.readlines()
     # appending bootloader to sketch
     sketch = sketch + bootloader
@@ -88,9 +89,9 @@ def upload_sketch():
     #command = ["echo"] + command
     proc = subprocess.Popen(args=command, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     returncode = proc.wait()
-    print proc.stdout.read()
-    print proc.stderr.read()
-    print returncode
+    output = "OUT: " + proc.stdout.read()
+    output = output + "\nERR: " + proc.stderr.read()
+    return output
   finally:
     os.remove("/tmp/" + upload.filename)
 
