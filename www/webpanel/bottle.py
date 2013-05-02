@@ -35,7 +35,7 @@ if __name__ == '__main__':
     if _cmd_options.server and _cmd_options.server.startswith('gevent'):
         import gevent.monkey; gevent.monkey.patch_all()
 
-import cgi, email_utils, functools, hmac, imp, itertools, mimetypes,\
+import cgi, rfc822, functools, hmac, imp, itertools, mimetypes,\
         os, re, subprocess, sys, tempfile, threading, time, urllib, warnings
 
 from datetime import date as datedate, datetime, timedelta
@@ -2278,7 +2278,7 @@ def debug(mode=True):
 def parse_date(ims):
     """ Parse rfc1123, rfc850 and asctime timestamps and return UTC epoch. """
     try:
-        ts = email_utils.parsedate_tz(ims)
+        ts = rfc822.parsedate_tz(ims)
         return time.mktime(ts[:8] + (0,)) - (ts[9] or 0) - time.timezone
     except (TypeError, ValueError, IndexError, OverflowError):
         return None
