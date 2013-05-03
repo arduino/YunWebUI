@@ -33,7 +33,7 @@ function formCheck(form) {
         errors = true;
     }
     
-    if (password.value != null && password.value.length < 8) {
+    if (password.value != null && password.value != "" && password.value.length < 8) {
         errorHandler(password, errContainer, "Password should be 8 char at least");
         errors = true;
     }
