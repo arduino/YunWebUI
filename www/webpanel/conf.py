@@ -53,6 +53,11 @@ def get_stored_password():
 def update_conf(conf):
   if conf["password"].strip() != "":
     set_config_value(UCI_KEY_PWD, hashlib.sha512(conf["password"]).hexdigest())
+    proc = subprocess.Popen(["passwd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc.stdout.readline()
+    proc.stdin.write(conf["password"] + "\n")
+    proc.stdout.readline()
+    proc.stdin.write(conf["password"] + "\n")
 
   if conf["hostname"].strip() != "":
     set_config_value(UCI_KEY_HOSTNAME, conf["hostname"].replace(" ", "_"))
