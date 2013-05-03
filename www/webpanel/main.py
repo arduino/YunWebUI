@@ -84,7 +84,7 @@ def upload_sketch():
       sketch = f.readlines()
     # removing sketch last line
     sketch = sketch[:-1]
-    #with open("/etc/arduino/Caterina-Leonardo.hex", "r") as f:
+    #with open("/etc/arduino/Caterina-Etheris.hex", "r") as f:
     with open("/etc/arduino/optiboot_atmega328.hex", "r") as f:
       bootloader = f.readlines()
     # appending bootloader to sketch
