@@ -93,8 +93,8 @@ def upload_sketch():
     with open("/tmp/" + upload.filename, "w") as f:
       f.writelines(sketch)
 
-    #command = "avrdude -C/etc/avrdude.conf -patmega32u4 -cavr109 -P/dev/ttyACM0 -b57600 -D -Uflash:w:/tmp/" + upload.filename + ":i"
-    command = "avrdude -C/etc/avrdude.conf -pm328p -clinuxgpio -D -Uflash:w:/tmp/" + upload.filename + ":i"
+    #command = "avrdude -C/etc/avrdude.conf -patmega32u4 -cavr109 -P/dev/ttyACM0 -b57600 -Uflash:w:/tmp/" + upload.filename + ":i"
+    command = "avrdude -C/etc/avrdude.conf -pm328p -clinuxgpio -Uflash:w:/tmp/" + upload.filename + ":i"
     try:
       return subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
