@@ -17,30 +17,8 @@
   </div>
   <div id="content">
     <div class="wrapper">
-      Welcome to {{hostname}}, your Arduino Etheris<br/><br/>
-
-      This is my current network connection:<br/>
-      %for iface in active_interfaces:
-      Name: {{iface["name"]}}
-      %if iface["wireless"]:
-      (wireless)
-      %end
-      <br/>
-      Address: {{iface["address"]}}<br/>
-      MAC address: {{iface["mac"]}}<br/>
-      <br/>
-      %end
-
-      <form id="form1" name="form1" method="get" action="/config">
-        <ul>
-          <li>
-            <div class="input_container">
-              <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Configure">
-            </div>
-          </li>
-        </ul>
-      </form>
-
+      Configuration saved!<br/><br/>
+      Please wait a minute while I'm restarting...
     </div>
   </div>
   <!-- #content -->

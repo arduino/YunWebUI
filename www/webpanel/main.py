@@ -64,7 +64,7 @@ def configure():
 #  try:
   conf.update_conf(request.forms)
   subprocess.Popen(["reboot"])
-  redirect("/config")
+  return static_file("reboot.html", root=VIEWS_ROOT)
 #  except Exception as e:
 #    raise e
 #    redirect("/?error=%(message)s" % { "message": e.message })

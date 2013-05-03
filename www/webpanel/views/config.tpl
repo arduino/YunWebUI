@@ -12,13 +12,12 @@
   <div id="header">
     <div class="wrapper">
       <h1>Etheris</h1>
-
       <div id="logo"><img src="../assets/logo.png" alt="Etheris"/></div>
     </div>
   </div>
   <div id="content">
     <div class="wrapper">
-      <form id="form1" name="form1" method="post" novalidate="" action="/config">
+      <form id="form1" name="form1" method="post" action="/config" onsubmit="javascript:return formCheck(this);">
         <div id="error_container" class="hidden">
           <p>An error has occurred.</p>
         </div>
@@ -120,7 +119,7 @@
 
           <li>
             <div class="input_container">
-              <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Submit" onmousedown="javascript:alert('submitted');" tabindex="4">
+              <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Configure &amp; Restart" tabindex="6">
             </div>
           </li>
 
