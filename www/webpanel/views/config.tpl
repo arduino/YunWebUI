@@ -109,7 +109,7 @@
 
           <li>
             <label class="desc" for="password">
-              Password <span class="req">*</span>
+              Password
             </label>
 
             <div class="input_container">
