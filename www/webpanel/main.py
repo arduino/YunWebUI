@@ -3,9 +3,17 @@
 import os
 import subprocess
 import hashlib
-from bottle import route, run, template, static_file, request, response, error, hook
+from bottle import Bottle, route, run, template, static_file, request, response, hook, error, HTTPResponse
 from collections import OrderedDict
+import base64
+import hashlib
 import conf
+
+class WrongCredentials(Exception):
+
+  def __init__(self):
+    super(WrongCredentials, self).__init__(self, "Wrong credentials!")
+
 
 ROOT = "/www/webpanel"
 if os.environ.get("ROOT") != None:
@@ -13,30 +21,54 @@ if os.environ.get("ROOT") != None:
 
 VIEWS_ROOT = ROOT + "/views/"
 ASSETS_ROOT = ROOT + "/assets/"
-print ASSETS_ROOT
+
+app = Bottle()
 
 def redirect(location):
-  response.status = 302
   response.set_header("Location", location)
+  res = HTTPResponse("", status=302)
+  res._headers = response._headers
+  res._cookies = response._cookies
+  raise res
 
-@hook("before_request")
+def client_pwd(request):
+  pwd = request.cookies.get("pwd")
+  if pwd != "":
+    return pwd
+
+  auth = request.get_header("Authorization")
+  if auth != None:
+    pwd = base64.standard_decode(auth[6:])
+    pwd = pwd[pwd.find(":") + 1:]
+    return hashlib.sha512(pwd).hexdigest()
+
+  return ""
+
+@app.hook("before_request")
 def check_credentials():
   error = False
   pwd = conf.get_stored_password()
-  if pwd != "" and pwd != request.cookies.get("pwd"):
+  if pwd != "" and pwd != client_pwd(request):
     error = True
 
   if error:
     if request.path in ["/upload"]:
-      raise Exception("Wrong credentials")
+      raise WrongCredentials()
     elif request.path in ["/", "/config"]:
       redirect("/set_password")
 
-@route("/assets/<filename>")
+@app.error(500)
+def error500(error):
+  if hasattr(error, "exception") and isinstance(error.exception, WrongCredentials):
+    response.status = 403
+    return
+  return app.default_error_handler(error)
+
+@app.route("/assets/<filename>")
 def serve_static(filename):
   return static_file(filename, root=ASSETS_ROOT)
 
-@route("/")
+@app.route("/")
 def index():
   config = conf.read_conf()
   config["active_interfaces"] = conf.read_actual_status()
@@ -47,16 +79,16 @@ def index():
     pass
   return template("index", config)
 
-@route("/set_password")
+@app.route("/set_password")
 def set_password_get():
   return static_file("set_password.html", root=VIEWS_ROOT)
 
-@route("/set_password", method="POST")
+@app.route("/set_password", method="POST")
 def set_password_post():
   response.set_cookie("pwd", hashlib.sha512(request.forms.password).hexdigest())
   redirect("/")
 
-@route("/config")
+@app.route("/config")
 def index():
   config = conf.read_conf()
   config["root"] = VIEWS_ROOT
@@ -64,7 +96,7 @@ def index():
   config["encryptions"] = OrderedDict([("none", "None"), ("wep", "WEP"), ("psk", "WPA"), ("psk2", "WPA2")]) 
   return template("config", config)
 
-@route("/config", method="POST")
+@app.route("/config", method="POST")
 def configure():
 #  try:
   conf.update_conf(request.forms)
@@ -74,7 +106,7 @@ def configure():
 #    raise e
 #    redirect("/?error=%(message)s" % { "message": e.message })
 
-@route("/upload", method="POST")
+@app.route("/upload", method="POST")
 def upload_sketch():
   upload = request.files.get("sketch")
   name, ext = os.path.splitext(upload.filename)
@@ -107,4 +139,4 @@ def upload_sketch():
   finally:
     os.remove("/tmp/" + upload.filename)
 
-run(host='0.0.0.0', port=80)
+app.run(host='0.0.0.0', port=80)
