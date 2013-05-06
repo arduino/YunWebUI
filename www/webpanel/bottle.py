@@ -35,8 +35,8 @@ if __name__ == '__main__':
     if _cmd_options.server and _cmd_options.server.startswith('gevent'):
         import gevent.monkey; gevent.monkey.patch_all()
 
-import cgi, rfc822, functools, hmac, imp, itertools, mimetypes,\
-        os, re, subprocess, sys, tempfile, threading, time, urllib, warnings
+import base64, cgi, rfc822, functools, hmac, imp, itertools, mimetypes,\
+        os, re, subprocess, sys, tempfile, threading, time, warnings
 
 from datetime import date as datedate, datetime, timedelta
 from tempfile import TemporaryFile
@@ -2285,9 +2285,7 @@ def parse_date(ims):
 
 
 def parse_auth(header):
-    raise "parse_auth(header) cannot run with python-mini"
     """ Parse rfc2617 HTTP authentication header string (basic) and return (user,pass) tuple or None"""
-    """
     try:
         method, data = header.split(None, 1)
         if method.lower() == 'basic':
@@ -2295,7 +2293,6 @@ def parse_auth(header):
             return user, pwd
     except (KeyError, ValueError):
         return None
-    """
 
 def parse_range_header(header, maxlen=0):
     ''' Yield (start, end) ranges parsed from a HTTP Range header. Skip
@@ -2333,26 +2330,20 @@ def _lscmp(a, b):
 
 
 def cookie_encode(data, key):
-    raise "cookie_encode(data, key) cannot run with python-mini"
     ''' Encode and sign a pickle-able object. Return a (byte) string '''
-    '''
     msg = base64.b64encode(pickle.dumps(data, -1))
     sig = base64.b64encode(hmac.new(tob(key), msg).digest())
     return tob('!') + sig + tob('?') + msg
-    '''
 
 
 def cookie_decode(data, key):
-    raise "cookie_decode(data, key) cannot run with python-mini"
     ''' Verify and decode an encoded string. Return an object or None.'''
-    '''
     data = tob(data)
     if cookie_is_encoded(data):
         sig, msg = data.split(tob('?'), 1)
         if _lscmp(sig[1:], base64.b64encode(hmac.new(tob(key), msg).digest())):
             return pickle.loads(base64.b64decode(msg))
     return None
-    '''
 
 
 def cookie_is_encoded(data):
