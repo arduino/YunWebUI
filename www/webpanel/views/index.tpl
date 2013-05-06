@@ -41,14 +41,15 @@
         </ul>
       </form>
 
-      %if defined("last_log")
+      %if defined("last_log"):
       <br/>
       There's been a problem last time I tried configuring wifi. Check the following log:<br/>
-      <textarea cols="80" rows="40">
+      <textarea rows="20">
       %for line in last_log:
-      {{line}}
+{{line.strip()}}
       %end
       </textarea>
+      <script language="javascript">document.getElementsByTagName("textarea")[0].scrollTop = 99999;</script>
       %end
 
     </div>

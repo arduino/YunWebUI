@@ -82,6 +82,10 @@ input {
     color: #555;
 }
 
+textarea {
+    width: 100%;
+}
+
 #header {
     color: #FFF;
     width: 50%;
