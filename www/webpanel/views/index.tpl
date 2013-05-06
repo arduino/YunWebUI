@@ -41,6 +41,16 @@
         </ul>
       </form>
 
+      %if defined("last_log")
+      <br/>
+      There's been a problem last time I tried configuring wifi. Check the following log:<br/>
+      <textarea cols="80" rows="40">
+      %for line in last_log:
+      {{line}}
+      %end
+      </textarea>
+      %end
+
     </div>
   </div>
   <!-- #content -->
@@ -49,3 +59,4 @@
 <!-- #container -->
 </body>
 </html>
+

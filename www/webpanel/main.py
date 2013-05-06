@@ -40,6 +40,11 @@ def serve_static(filename):
 def index():
   config = conf.read_conf()
   config["active_interfaces"] = conf.read_actual_status()
+  try:
+    with open("/last_dmesg_with_wifi_errors.log") as last_log:
+      config["last_log"] = last_log.readlines()
+  except IOError:
+    pass
   return template("index", config)
 
 @route("/set_password")
