@@ -132,7 +132,7 @@ def upload_sketch():
 
     #command = "avrdude -C/etc/avrdude.conf -patmega32u4 -cavr109 -P/dev/ttyACM0 -b57600 -Uflash:w:/tmp/" + upload.filename + ":i"
     command = "avrdude -C/etc/avrdude.conf -pm328p -clinuxgpio -Uflash:w:/tmp/" + upload.filename + ":i"
-    if request.query.params:
+    if request.forms.params:
       command = command + " " + request.forms.params
     try:
       output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
