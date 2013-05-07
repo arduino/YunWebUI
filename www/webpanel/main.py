@@ -132,10 +132,15 @@ def upload_sketch():
 
     #command = "avrdude -C/etc/avrdude.conf -patmega32u4 -cavr109 -P/dev/ttyACM0 -b57600 -Uflash:w:/tmp/" + upload.filename + ":i"
     command = "avrdude -C/etc/avrdude.conf -pm328p -clinuxgpio -Uflash:w:/tmp/" + upload.filename + ":i"
+    if request.query.params:
+      command = command + " " + request.forms.params
     try:
-      return subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+      output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+      return HTTPResponse(output, status=200)
     except subprocess.CalledProcessError as e:
-      return e.output
+      return HTTPResponse(e.output, status=500)
+  except Exception as e:
+    return HTTPResponse(e.output, status=500)
   finally:
     os.remove("/tmp/" + upload.filename)
 
