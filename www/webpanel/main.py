@@ -144,4 +144,4 @@ def upload_sketch():
   finally:
     os.remove("/tmp/" + upload.filename)
 
-app.run(host='0.0.0.0', port=80)
+app.run(host='0.0.0.0', port=443)

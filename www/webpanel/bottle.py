@@ -2498,11 +2498,13 @@ class FlupFCGIServer(ServerAdapter):
 class WSGIRefServer(ServerAdapter):
     def run(self, handler): # pragma: no cover
         from wsgiref.simple_server import make_server, WSGIRequestHandler
+        import ssl
         if self.quiet:
             class QuietHandler(WSGIRequestHandler):
                 def log_request(*args, **kw): pass
             self.options['handler_class'] = QuietHandler
         srv = make_server(self.host, self.port, handler, **self.options)
+        srv.socket = ssl.wrap_socket(srv.socket, certfile="/etc/arduino/ssl_certificate.pem", server_side=True)
         srv.serve_forever()
 
 
