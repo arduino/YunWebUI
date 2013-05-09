@@ -35,7 +35,7 @@
         <ul>
           <li>
             <div class="input_container">
-              <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Configure">
+              <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Configure" onclick="javascript:document.location = '/config'; return false;">
             </div>
           </li>
         </ul>

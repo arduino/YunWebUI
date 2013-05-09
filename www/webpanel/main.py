@@ -4,10 +4,10 @@ import os
 import subprocess
 import hashlib
 from collections import OrderedDict
-import base64
 
 from bottle import Bottle, route, run, template, static_file, request, response, hook, error, HTTPResponse
 import conf
+import bridge_client
 
 class WrongCredentials(Exception):
 
@@ -33,14 +33,12 @@ def redirect(location):
 
 def client_pwd(request):
   pwd = request.cookies.get("pwd")
-  if pwd != "":
+  if pwd != None and pwd != "":
     return pwd
 
-  auth = request.get_header("Authorization")
+  auth = request.auth
   if auth != None:
-    pwd = base64.standard_decode(auth[6:])
-    pwd = pwd[pwd.find(":") + 1:]
-    return hashlib.sha512(pwd).hexdigest()
+    return hashlib.sha512(auth[1]).hexdigest()
 
   return ""
 
@@ -52,9 +50,11 @@ def check_credentials():
     error = True
 
   if error:
-    if request.path in ["/upload"]:
+    if request.path in ["/upload"] or request.route.rule in ["/board/<command:path>"]:
       raise WrongCredentials()
-    elif request.path in ["/", "/config"]:
+    if request.path in ["/set_password"] or request.route.rule in ["/assets/<filename>"]:
+      return
+    if request.path not in ["/upload"]:
       redirect("/set_password")
 
 @app.error(500)
@@ -143,5 +143,13 @@ def upload_sketch():
     return HTTPResponse(e.output, status=500)
   finally:
     os.remove("/tmp/" + upload.filename)
+
+@app.route("/board/<command:path>", ["GET", "POST"])
+def board_send_command(command):
+  command_response = bridge_client.send_command(command.split("/"))
+
+  if command_response != None:
+    return command_response
+  response.status = 200
 
 app.run(host='0.0.0.0', port=443)
