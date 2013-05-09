@@ -146,4 +146,4 @@ def board_send_command(command):
     return command_response
   response.status = 200
 
-app.run(host='0.0.0.0', port=443)
+app.run(host="0.0.0.0", server="securewsgiref", port=443)

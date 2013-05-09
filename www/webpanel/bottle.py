@@ -2495,7 +2495,7 @@ class FlupFCGIServer(ServerAdapter):
         flup.server.fcgi.WSGIServer(handler, **self.options).run()
 
 
-class WSGIRefServer(ServerAdapter):
+class SecureWSGIRefServer(ServerAdapter):
     def run(self, handler): # pragma: no cover
         from wsgiref.simple_server import make_server, WSGIRequestHandler
         import ssl
@@ -2505,6 +2505,17 @@ class WSGIRefServer(ServerAdapter):
             self.options['handler_class'] = QuietHandler
         srv = make_server(self.host, self.port, handler, **self.options)
         srv.socket = ssl.wrap_socket(srv.socket, certfile="/etc/arduino/ssl_certificate.pem", server_side=True)
+        srv.serve_forever()
+
+
+class WSGIRefServer(ServerAdapter):
+    def run(self, handler): # pragma: no cover
+        from wsgiref.simple_server import make_server, WSGIRequestHandler
+        if self.quiet:
+            class QuietHandler(WSGIRequestHandler):
+                def log_request(*args, **kw): pass
+            self.options['handler_class'] = QuietHandler
+        srv = make_server(self.host, self.port, handler, **self.options)
         srv.serve_forever()
 
 
@@ -2684,6 +2695,7 @@ server_names = {
     'cgi': CGIServer,
     'flup': FlupFCGIServer,
     'wsgiref': WSGIRefServer,
+    'securewsgiref': SecureWSGIRefServer,
     'waitress': WaitressServer,
     'cherrypy': CherryPyServer,
     'paste': PasteServer,
