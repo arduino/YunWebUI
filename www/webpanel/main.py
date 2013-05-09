@@ -97,7 +97,7 @@ def index():
 @app.route("/config", method="POST")
 def configure():
   conf.update_conf(request.forms)
-  #subprocess.Popen(["reboot"])
+  subprocess.Popen(["reboot"])
   return template("reboot")
 
 @app.route("/upload", method="POST")
