@@ -3,10 +3,10 @@
 import os
 import subprocess
 import hashlib
-from bottle import Bottle, route, run, template, static_file, request, response, hook, error, HTTPResponse
 from collections import OrderedDict
 import base64
-import hashlib
+
+from bottle import Bottle, route, run, template, static_file, request, response, hook, error, HTTPResponse
 import conf
 
 class WrongCredentials(Exception):
