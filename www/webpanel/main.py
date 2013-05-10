@@ -44,7 +44,8 @@ def client_pwd(request):
 def check_if_update_file_available():
   try:
     output = subprocess.check_output("update-file-available", stderr=subprocess.STDOUT, shell=True)
-    print output
+    output = output.strip()
+    output = output[output.rfind("/") + 1:]
     return output
   except subprocess.CalledProcessError as e:
     return None
@@ -165,9 +166,9 @@ def reset_board():
   if update_file is None:
     response.status = 500
 
-  blink = subprocess.Popen(["blink_start", "100"])
+  blink = subprocess.Popen(["blink-start", "100"])
   blink.wait()
-  subprocess.Popen(["sysupgrade", update_file])
+  subprocess.Popen(["run-sysupgrade", update_file])
   return template("sysupgrade")
 
 app.run(host="0.0.0.0", server="securewsgiref", port=443)

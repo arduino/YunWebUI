@@ -119,7 +119,7 @@
     color: #c37676;
   }
 
-  input#saveForm {
+  input.saveForm {
     height: 30px;
     border: 1px solid #1e8488;
     box-shadow: 0 4px 0 #1e8488;
@@ -196,7 +196,7 @@
       font-size: .9em;
     }
 
-    input#saveForm {
+    input.saveForm {
       height: 30px;
       border: 1px solid #1e8488;
       box-shadow: 0 4px 0 #1e8488;
@@ -252,7 +252,7 @@
       width: 400px;
     }
 
-    input#saveForm {
+    input.saveForm {
       width: 410px;
       margin-left: 218px;
       -webkit-appearance: none;

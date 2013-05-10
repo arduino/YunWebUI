@@ -16,7 +16,7 @@ MAC address: {{iface["mac"]}}<br/>
   <ul>
     <li>
       <div class="input_container">
-        <input class="btTxt submit" type="submit" value="Configure" onclick="javascript:return goto('/config');">
+        <input class="btTxt submit saveForm" type="submit" value="Configure" onclick="javascript:return goto('/config');">
       </div>
     </li>
   </ul>
@@ -33,7 +33,7 @@ Do you wish to use it to reset your Etheris?<br/>
   <ul>
     <li>
       <div class="input_container">
-        <input class="btTxt submit" type="submit" value="Reset" onclick="javascript:return confirm('Are you sure you want to RESET the Etheris?\nThis operation is irreversible!!');">
+        <input class="btTxt submit saveForm" type="submit" value="Reset" onclick="javascript:return confirm('Are you sure you want to RESET the Etheris?\nThis operation is irreversible!!');">
       </div>
     </li>
   </ul>

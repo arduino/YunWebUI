@@ -100,7 +100,7 @@
 
     <li>
       <div class="input_container">
-        <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Configure &amp; Restart" tabindex="6">
+        <input class="btTxt submit saveForm" type="submit" value="Configure &amp; Restart" tabindex="6">
       </div>
     </li>
 

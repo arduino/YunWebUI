@@ -12,7 +12,7 @@
 
     <li>
       <div class="input_container">
-        <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Log in" tabindex="6">
+        <input class="btTxt submit saveForm" type="submit" value="Log in" tabindex="6">
       </div>
     </li>
   </ul>
