@@ -166,7 +166,7 @@ def reset_board():
   if update_file is None:
     response.status = 500
 
-  blink = subprocess.Popen(["blink-start", "100"])
+  blink = subprocess.Popen(["blink-start", "50"])
   blink.wait()
   subprocess.Popen(["run-sysupgrade", update_file])
   return template("sysupgrade")
