@@ -12,15 +12,34 @@ MAC address: {{iface["mac"]}}<br/>
 <br/>
 %end
 
-<form id="form1" name="form1" method="get" action="/config">
+<form method="get" action="/config">
   <ul>
     <li>
       <div class="input_container">
-        <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Configure" onclick="javascript:document.location = '/config'; return false;">
+        <input class="btTxt submit" type="submit" value="Configure" onclick="javascript:return goto('/config');">
       </div>
     </li>
   </ul>
 </form>
+
+%if defined("update_file"):
+<br/>
+<br/>
+A file named {{update_file}} has been found on the SD card.<br/>
+Do you wish to use it to reset your Etheris?<br/>
+<strong>ATTENTION!!</strong> You'll loose everything stored on the Etheris and it will then look brand new! Back it up before proceeding!<br/>
+
+<form method="post" action="/reset_board">
+  <ul>
+    <li>
+      <div class="input_container">
+        <input class="btTxt submit" type="submit" value="Reset" onclick="javascript:return confirm('Are you sure you want to RESET the Etheris?\nThis operation is irreversible!!');">
+      </div>
+    </li>
+  </ul>
+</form>
+
+%end
 
 %if defined("last_log"):
 <br/>

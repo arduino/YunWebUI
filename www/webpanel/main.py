@@ -41,6 +41,14 @@ def client_pwd(request):
 
   return ""
 
+def check_if_update_file_available():
+  try:
+    output = subprocess.check_output("update-file-available", stderr=subprocess.STDOUT, shell=True)
+    print output
+    return output
+  except subprocess.CalledProcessError as e:
+    return None
+
 @app.hook("before_request")
 def check_credentials():
   error = False
@@ -69,14 +77,19 @@ def serve_static(filename):
 
 @app.route("/")
 def index():
-  config = conf.read_conf()
-  config["active_interfaces"] = conf.read_actual_status()
+  ctx = conf.read_conf()
+  ctx["active_interfaces"] = conf.read_actual_status()
+  
+  update_file = check_if_update_file_available()
+  if update_file != None:
+    ctx["update_file"] = update_file
+  
   try:
     with open("/last_dmesg_with_wifi_errors.log") as last_log:
-      config["last_log"] = last_log.readlines()
+      ctx["last_log"] = last_log.readlines()
   except IOError:
     pass
-  return template("index", config)
+  return template("index", ctx)
 
 @app.route("/set_password")
 def set_password_get():
@@ -89,10 +102,10 @@ def set_password_post():
 
 @app.route("/config")
 def index():
-  config = conf.read_conf()
-  config["countries"] = OrderedDict([("AL", "ALBANIA"), ("DZ", "ALGERIA"), ("AD", "ANDORRA"), ("AR", "ARGENTINA"), ("AW", "ARUBA"), ("AU", "AUSTRALIA"), ("AT", "AUSTRIA"), ("AZ", "AZERBAIJAN"), ("BH", "BAHRAIN"), ("BD", "BANGLADESH"), ("BB", "BARBADOS"), ("BY", "BELARUS"), ("BE", "BELGIUM"), ("BZ", "BELIZE"), ("BO", "BOLIVIA, PLURINATIONAL STATE OF"), ("BA", "BOSNIA AND HERZEGOVINA"), ("BR", "BRAZIL"), ("BN", "BRUNEI DARUSSALAM"), ("BG", "BULGARIA"), ("KH", "CAMBODIA"), ("CA", "CANADA"), ("CL", "CHILE"), ("CN", "CHINA"), ("CO", "COLOMBIA"), ("CR", "COSTA RICA"), ("HR", "CROATIA"), ("CY", "CYPRUS"), ("CZ", "CZECH REPUBLIC"), ("DK", "DENMARK"), ("DO", "DOMINICAN REPUBLIC"), ("EC", "ECUADOR"), ("EG", "EGYPT"), ("SV", "EL SALVADOR"), ("EE", "ESTONIA"), ("FI", "FINLAND"), ("FR", "FRANCE"), ("GE", "GEORGIA"), ("DE", "GERMANY"), ("GR", "GREECE"), ("GL", "GREENLAND"), ("GD", "GRENADA"), ("GU", "GUAM"), ("GT", "GUATEMALA"), ("HT", "HAITI"), ("HN", "HONDURAS"), ("HK", "HONG KONG"), ("HU", "HUNGARY"), ("IS", "ICELAND"), ("IN", "INDIA"), ("ID", "INDONESIA"), ("IR", "IRAN, ISLAMIC REPUBLIC OF"), ("IE", "IRELAND"), ("IL", "ISRAEL"), ("IT", "ITALY"), ("JM", "JAMAICA"), ("JP", "JAPAN"), ("JO", "JORDAN"), ("KZ", "KAZAKHSTAN"), ("KE", "KENYA"), ("KP", "KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF"), ("KR", "KOREA, REPUBLIC OF"), ("KW", "KUWAIT"), ("LV", "LATVIA"), ("LB", "LEBANON"), ("LI", "LIECHTENSTEIN"), ("LT", "LITHUANIA"), ("LU", "LUXEMBOURG"), ("MO", "MACAO"), ("MK", "MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF"), ("MY", "MALAYSIA"), ("MT", "MALTA"), ("MX", "MEXICO"), ("MC", "MONACO"), ("MA", "MOROCCO"), ("NP", "NEPAL"), ("NL", "NETHERLANDS"), ("NZ", "NEW ZEALAND"), ("NO", "NORWAY"), ("OM", "OMAN"), ("PK", "PAKISTAN"), ("PA", "PANAMA"), ("PG", "PAPUA NEW GUINEA"), ("PE", "PERU"), ("PH", "PHILIPPINES"), ("PL", "POLAND"), ("PT", "PORTUGAL"), ("PR", "PUERTO RICO"), ("QA", "QATAR"), ("RO", "ROMANIA"), ("RU", "RUSSIAN FEDERATION"), ("RW", "RWANDA"), ("BL", "SAINT BARTHÉLEMY"), ("SA", "SAUDI ARABIA"), ("RS", "SERBIA"), ("SG", "SINGAPORE"), ("SK", "SLOVAKIA"), ("SI", "SLOVENIA"), ("ZA", "SOUTH AFRICA"), ("ES", "SPAIN"), ("LK", "SRI LANKA"), ("SE", "SWEDEN"), ("CH", "SWITZERLAND"), ("SY", "SYRIAN ARAB REPUBLIC"), ("TW", "TAIWAN, PROVINCE OF CHINA"), ("TH", "THAILAND"), ("TT", "TRINIDAD AND TOBAGO"), ("TN", "TUNISIA"), ("TR", "TURKEY"), ("UA", "UKRAINE"), ("AE", "UNITED ARAB EMIRATES"), ("GB", "UNITED KINGDOM"), ("US", "UNITED STATES"), ("UY", "URUGUAY"), ("UZ", "UZBEKISTAN"), ("VE", "VENEZUELA, BOLIVARIAN REPUBLIC OF"), ("VN", "VIET NAM"), ("YE", "YEMEN"), ("ZW", "ZIMBABWE")])
-  config["encryptions"] = OrderedDict([("none", "None"), ("wep", "WEP"), ("psk", "WPA"), ("psk2", "WPA2")]) 
-  return template("config", config)
+  ctx = conf.read_conf()
+  ctx["countries"] = OrderedDict([("AL", "ALBANIA"), ("DZ", "ALGERIA"), ("AD", "ANDORRA"), ("AR", "ARGENTINA"), ("AW", "ARUBA"), ("AU", "AUSTRALIA"), ("AT", "AUSTRIA"), ("AZ", "AZERBAIJAN"), ("BH", "BAHRAIN"), ("BD", "BANGLADESH"), ("BB", "BARBADOS"), ("BY", "BELARUS"), ("BE", "BELGIUM"), ("BZ", "BELIZE"), ("BO", "BOLIVIA, PLURINATIONAL STATE OF"), ("BA", "BOSNIA AND HERZEGOVINA"), ("BR", "BRAZIL"), ("BN", "BRUNEI DARUSSALAM"), ("BG", "BULGARIA"), ("KH", "CAMBODIA"), ("CA", "CANADA"), ("CL", "CHILE"), ("CN", "CHINA"), ("CO", "COLOMBIA"), ("CR", "COSTA RICA"), ("HR", "CROATIA"), ("CY", "CYPRUS"), ("CZ", "CZECH REPUBLIC"), ("DK", "DENMARK"), ("DO", "DOMINICAN REPUBLIC"), ("EC", "ECUADOR"), ("EG", "EGYPT"), ("SV", "EL SALVADOR"), ("EE", "ESTONIA"), ("FI", "FINLAND"), ("FR", "FRANCE"), ("GE", "GEORGIA"), ("DE", "GERMANY"), ("GR", "GREECE"), ("GL", "GREENLAND"), ("GD", "GRENADA"), ("GU", "GUAM"), ("GT", "GUATEMALA"), ("HT", "HAITI"), ("HN", "HONDURAS"), ("HK", "HONG KONG"), ("HU", "HUNGARY"), ("IS", "ICELAND"), ("IN", "INDIA"), ("ID", "INDONESIA"), ("IR", "IRAN, ISLAMIC REPUBLIC OF"), ("IE", "IRELAND"), ("IL", "ISRAEL"), ("IT", "ITALY"), ("JM", "JAMAICA"), ("JP", "JAPAN"), ("JO", "JORDAN"), ("KZ", "KAZAKHSTAN"), ("KE", "KENYA"), ("KP", "KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF"), ("KR", "KOREA, REPUBLIC OF"), ("KW", "KUWAIT"), ("LV", "LATVIA"), ("LB", "LEBANON"), ("LI", "LIECHTENSTEIN"), ("LT", "LITHUANIA"), ("LU", "LUXEMBOURG"), ("MO", "MACAO"), ("MK", "MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF"), ("MY", "MALAYSIA"), ("MT", "MALTA"), ("MX", "MEXICO"), ("MC", "MONACO"), ("MA", "MOROCCO"), ("NP", "NEPAL"), ("NL", "NETHERLANDS"), ("NZ", "NEW ZEALAND"), ("NO", "NORWAY"), ("OM", "OMAN"), ("PK", "PAKISTAN"), ("PA", "PANAMA"), ("PG", "PAPUA NEW GUINEA"), ("PE", "PERU"), ("PH", "PHILIPPINES"), ("PL", "POLAND"), ("PT", "PORTUGAL"), ("PR", "PUERTO RICO"), ("QA", "QATAR"), ("RO", "ROMANIA"), ("RU", "RUSSIAN FEDERATION"), ("RW", "RWANDA"), ("BL", "SAINT BARTHÉLEMY"), ("SA", "SAUDI ARABIA"), ("RS", "SERBIA"), ("SG", "SINGAPORE"), ("SK", "SLOVAKIA"), ("SI", "SLOVENIA"), ("ZA", "SOUTH AFRICA"), ("ES", "SPAIN"), ("LK", "SRI LANKA"), ("SE", "SWEDEN"), ("CH", "SWITZERLAND"), ("SY", "SYRIAN ARAB REPUBLIC"), ("TW", "TAIWAN, PROVINCE OF CHINA"), ("TH", "THAILAND"), ("TT", "TRINIDAD AND TOBAGO"), ("TN", "TUNISIA"), ("TR", "TURKEY"), ("UA", "UKRAINE"), ("AE", "UNITED ARAB EMIRATES"), ("GB", "UNITED KINGDOM"), ("US", "UNITED STATES"), ("UY", "URUGUAY"), ("UZ", "UZBEKISTAN"), ("VE", "VENEZUELA, BOLIVARIAN REPUBLIC OF"), ("VN", "VIET NAM"), ("YE", "YEMEN"), ("ZW", "ZIMBABWE")])
+  ctx["encryptions"] = OrderedDict([("none", "None"), ("wep", "WEP"), ("psk", "WPA"), ("psk2", "WPA2")])
+  return template("config", ctx)
 
 @app.route("/config", method="POST")
 def configure():
@@ -145,5 +158,16 @@ def board_send_command(command):
   if command_response != None:
     return command_response
   response.status = 200
+  
+@app.route("/reset_board", "POST")
+def reset_board():
+  update_file = check_if_update_file_available()
+  if update_file is None:
+    response.status = 500
+
+  blink = subprocess.Popen(["blink_start", "100"])
+  blink.wait()
+  subprocess.Popen(["sysupgrade", update_file])
+  return template("sysupgrade")
 
 app.run(host="0.0.0.0", server="securewsgiref", port=443)

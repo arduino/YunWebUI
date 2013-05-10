@@ -307,6 +307,11 @@
       er.className = "visible";
       er.innerHTML = "<p>" + er.innerHTML + msg + "<br /></p>";
     }
+    
+    function goto(href) {
+      document.location = href;
+      return false;
+    }
   </script>
   <title>Etheris</title>
 </head>
