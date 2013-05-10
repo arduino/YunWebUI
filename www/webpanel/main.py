@@ -171,4 +171,20 @@ def reset_board():
   subprocess.Popen(["run-sysupgrade", update_file])
   return template("sysupgrade")
 
+import threading
+def run_server_on_port_80():
+  app80 = Bottle()
+  
+  @app80.route("<whatever:path>", method="ANY")
+  def redirect_to_https(whatever):
+    ctx = {}
+    ctx["new_url"] = request.url.replace("http:", "https:")
+    return template("redirecting", ctx)
+    
+  app80.run(host="0.0.0.0", port=80)
+    
+app80thread = threading.Thread(target=run_server_on_port_80)
+app80thread.daemon = True
+app80thread.start()
+
 app.run(host="0.0.0.0", server="securewsgiref", port=443)
