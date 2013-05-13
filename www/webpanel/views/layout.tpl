@@ -262,6 +262,7 @@
   <script type="text/javascript">
     function formCheck(form) {
       var wifi_ssid = form["wifi.ssid"];
+      var wifi_encryption = form["wifi.encryption"];
       var wifi_password = form["wifi.password"];
       var hostname = form["hostname"];
       var password = form["password"];
@@ -282,12 +283,14 @@
         errorHandler(wifi_ssid, errContainer, "Please choose a WiFi network name");
         errors = true;
       }
-      if (wifi_password.value == null || wifi_password.value == "") {
-        errorHandler(wifi_password, errContainer, "Please choose a WiFi password");
-        errors = true;
-      } else if (wifi_password.value.length < 8) {
-        errorHandler(wifi_password, errContainer, "WiFi password should be 8 char at least");
-        errors = true;
+      if (wifi_encryption.value != "none") {
+        if (wifi_password.value == null || wifi_password.value == "") {
+          errorHandler(wifi_password, errContainer, "Please choose a WiFi password");
+          errors = true;
+        } else if (wifi_password.value.length < 8) {
+          errorHandler(wifi_password, errContainer, "WiFi password should be 8 char at least");
+          errors = true;
+        }
       }
       if (hostname.value == null || hostname.value == "") {
         errorHandler(hostname, errContainer, "Please choose a name for your Etheris");

@@ -67,7 +67,7 @@
       </label>
 
       <div class="input_container">
-        <input id="wifi.password" name="wifi.password" type="password" value="" maxlength="255" tabindex="4" required="">
+        <input id="wifi.password" name="wifi.password" type="password" value="" maxlength="255" tabindex="4">
       </div>
     </li>
 
