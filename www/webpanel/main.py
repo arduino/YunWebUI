@@ -60,7 +60,7 @@ def check_credentials():
   if error:
     if request.path in ["/upload"] or request.route.rule in ["/board/<command:path>"]:
       raise WrongCredentials()
-    if request.path in ["/set_password"] or request.route.rule in ["/assets/<filename>"]:
+    if request.path in ["/set_password", "/ready"] or request.route.rule in ["/assets/<filename>"]:
       return
     if request.path not in ["/upload"]:
       redirect("/set_password")
@@ -91,6 +91,10 @@ def index():
   except IOError:
     pass
   return template("index", ctx)
+
+@app.route("/ready")
+def are_you_ready():
+  response.status = 200
 
 @app.route("/set_password")
 def set_password_get():
