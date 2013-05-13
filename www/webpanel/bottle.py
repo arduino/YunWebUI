@@ -2478,23 +2478,6 @@ class ServerAdapter(object):
         return "%s(%s)" % (self.__class__.__name__, args)
 
 
-class CGIServer(ServerAdapter):
-    quiet = True
-    def run(self, handler): # pragma: no cover
-        from wsgiref.handlers import CGIHandler
-        def fixed_environ(environ, start_response):
-            environ.setdefault('PATH_INFO', '')
-            return handler(environ, start_response)
-        CGIHandler().run(fixed_environ)
-
-
-class FlupFCGIServer(ServerAdapter):
-    def run(self, handler): # pragma: no cover
-        import flup.server.fcgi
-        self.options.setdefault('bindAddress', (self.host, self.port))
-        flup.server.fcgi.WSGIServer(handler, **self.options).run()
-
-
 class SecureWSGIRefServer(ServerAdapter):
     def run(self, handler): # pragma: no cover
         from wsgiref.simple_server import make_server, WSGIRequestHandler
@@ -2518,199 +2501,9 @@ class WSGIRefServer(ServerAdapter):
         srv = make_server(self.host, self.port, handler, **self.options)
         srv.serve_forever()
 
-
-class CherryPyServer(ServerAdapter):
-    def run(self, handler): # pragma: no cover
-        from cherrypy import wsgiserver
-        server = wsgiserver.CherryPyWSGIServer((self.host, self.port), handler)
-        try:
-            server.start()
-        finally:
-            server.stop()
-
-
-class WaitressServer(ServerAdapter):
-    def run(self, handler):
-        from waitress import serve
-        serve(handler, host=self.host, port=self.port)
-
-
-class PasteServer(ServerAdapter):
-    def run(self, handler): # pragma: no cover
-        from paste import httpserver
-        from paste.translogger import TransLogger
-        handler = TransLogger(handler, setup_console_handler=(not self.quiet))
-        httpserver.serve(handler, host=self.host, port=str(self.port),
-                         **self.options)
-
-
-class MeinheldServer(ServerAdapter):
-    def run(self, handler):
-        from meinheld import server
-        server.listen((self.host, self.port))
-        server.run(handler)
-
-
-class FapwsServer(ServerAdapter):
-    """ Extremely fast webserver using libev. See http://www.fapws.org/ """
-    def run(self, handler): # pragma: no cover
-        import fapws._evwsgi as evwsgi
-        from fapws import base, config
-        port = self.port
-        if float(config.SERVER_IDENT[-2:]) > 0.4:
-            # fapws3 silently changed its API in 0.5
-            port = str(port)
-        evwsgi.start(self.host, port)
-        # fapws3 never releases the GIL. Complain upstream. I tried. No luck.
-        if 'BOTTLE_CHILD' in os.environ and not self.quiet:
-            _stderr("WARNING: Auto-reloading does not work with Fapws3.\n")
-            _stderr("         (Fapws3 breaks python thread support)\n")
-        evwsgi.set_base_module(base)
-        def app(environ, start_response):
-            environ['wsgi.multiprocess'] = False
-            return handler(environ, start_response)
-        evwsgi.wsgi_cb(('', app))
-        evwsgi.run()
-
-
-class TornadoServer(ServerAdapter):
-    """ The super hyped asynchronous server by facebook. Untested. """
-    def run(self, handler): # pragma: no cover
-        import tornado.wsgi, tornado.httpserver, tornado.ioloop
-        container = tornado.wsgi.WSGIContainer(handler)
-        server = tornado.httpserver.HTTPServer(container)
-        server.listen(port=self.port,address=self.host)
-        tornado.ioloop.IOLoop.instance().start()
-
-
-class AppEngineServer(ServerAdapter):
-    """ Adapter for Google App Engine. """
-    quiet = True
-    def run(self, handler):
-        from google.appengine.ext.webapp import util
-        # A main() function in the handler script enables 'App Caching'.
-        # Lets makes sure it is there. This _really_ improves performance.
-        module = sys.modules.get('__main__')
-        if module and not hasattr(module, 'main'):
-            module.main = lambda: util.run_wsgi_app(handler)
-        util.run_wsgi_app(handler)
-
-
-class TwistedServer(ServerAdapter):
-    """ Untested. """
-    def run(self, handler):
-        from twisted.web import server, wsgi
-        from twisted.python.threadpool import ThreadPool
-        from twisted.internet import reactor
-        thread_pool = ThreadPool()
-        thread_pool.start()
-        reactor.addSystemEventTrigger('after', 'shutdown', thread_pool.stop)
-        factory = server.Site(wsgi.WSGIResource(reactor, thread_pool, handler))
-        reactor.listenTCP(self.port, factory, interface=self.host)
-        reactor.run()
-
-
-class DieselServer(ServerAdapter):
-    """ Untested. """
-    def run(self, handler):
-        from diesel.protocols.wsgi import WSGIApplication
-        app = WSGIApplication(handler, port=self.port)
-        app.run()
-
-
-class GeventServer(ServerAdapter):
-    """ Untested. Options:
-
-        * `fast` (default: False) uses libevent's http server, but has some
-          issues: No streaming, no pipelining, no SSL.
-        * See gevent.wsgi.WSGIServer() documentation for more options.
-    """
-    def run(self, handler):
-        from gevent import wsgi, pywsgi, local
-        if not isinstance(_lctx, local.local):
-            msg = "Bottle requires gevent.monkey.patch_all() (before import)"
-            raise RuntimeError(msg)
-        if not self.options.pop('fast', None): wsgi = pywsgi
-        self.options['log'] = None if self.quiet else 'default'
-        address = (self.host, self.port)
-        wsgi.WSGIServer(address, handler, **self.options).serve_forever()
-
-
-class GunicornServer(ServerAdapter):
-    """ Untested. See http://gunicorn.org/configure.html for options. """
-    def run(self, handler):
-        from gunicorn.app.base import Application
-
-        config = {'bind': "%s:%d" % (self.host, int(self.port))}
-        config.update(self.options)
-
-        class GunicornApplication(Application):
-            def init(self, parser, opts, args):
-                return config
-
-            def load(self):
-                return handler
-
-        GunicornApplication().run()
-
-
-class EventletServer(ServerAdapter):
-    """ Untested """
-    def run(self, handler):
-        from eventlet import wsgi, listen
-        try:
-            wsgi.server(listen((self.host, self.port)), handler,
-                        log_output=(not self.quiet))
-        except TypeError:
-            # Fallback, if we have old version of eventlet
-            wsgi.server(listen((self.host, self.port)), handler)
-
-
-class RocketServer(ServerAdapter):
-    """ Untested. """
-    def run(self, handler):
-        from rocket import Rocket
-        server = Rocket((self.host, self.port), 'wsgi', { 'wsgi_app' : handler })
-        server.start()
-
-
-class BjoernServer(ServerAdapter):
-    """ Fast server written in C: https://github.com/jonashaag/bjoern """
-    def run(self, handler):
-        from bjoern import run
-        run(handler, self.host, self.port)
-
-
-class AutoServer(ServerAdapter):
-    """ Untested. """
-    adapters = [WaitressServer, PasteServer, TwistedServer, CherryPyServer, WSGIRefServer]
-    def run(self, handler):
-        for sa in self.adapters:
-            try:
-                return sa(self.host, self.port, **self.options).run(handler)
-            except ImportError:
-                pass
-
 server_names = {
-    'cgi': CGIServer,
-    'flup': FlupFCGIServer,
     'wsgiref': WSGIRefServer,
     'securewsgiref': SecureWSGIRefServer,
-    'waitress': WaitressServer,
-    'cherrypy': CherryPyServer,
-    'paste': PasteServer,
-    'fapws3': FapwsServer,
-    'tornado': TornadoServer,
-    'gae': AppEngineServer,
-    'twisted': TwistedServer,
-    'diesel': DieselServer,
-    'meinheld': MeinheldServer,
-    'gunicorn': GunicornServer,
-    'eventlet': EventletServer,
-    'gevent': GeventServer,
-    'rocket': RocketServer,
-    'bjoern' : BjoernServer,
-    'auto': AutoServer,
 }
 
 
@@ -2827,15 +2620,7 @@ def run(app=None, server='wsgiref', host='127.0.0.1', port=8080,
             _stderr("Listening on http://%s:%d/\n" % (server.host, server.port))
             _stderr("Hit Ctrl-C to quit.\n\n")
 
-        if reloader:
-            lockfile = os.environ.get('BOTTLE_LOCKFILE')
-            bgcheck = FileCheckerThread(lockfile, interval)
-            with bgcheck:
-                server.run(app)
-            if bgcheck.status == 'reload':
-                sys.exit(3)
-        else:
-            server.run(app)
+        server.run(app)
     except KeyboardInterrupt:
         pass
     except (SystemExit, MemoryError):
@@ -2846,50 +2631,6 @@ def run(app=None, server='wsgiref', host='127.0.0.1', port=8080,
             print_exc()
         time.sleep(interval)
         sys.exit(3)
-
-
-
-class FileCheckerThread(threading.Thread):
-    ''' Interrupt main-thread as soon as a changed module file is detected,
-        the lockfile gets deleted or gets to old. '''
-
-    def __init__(self, lockfile, interval):
-        threading.Thread.__init__(self)
-        self.lockfile, self.interval = lockfile, interval
-        #: Is one of 'reload', 'error' or 'exit'
-        self.status = None
-
-    def run(self):
-        exists = os.path.exists
-        mtime = lambda path: os.stat(path).st_mtime
-        files = dict()
-
-        for module in list(sys.modules.values()):
-            path = getattr(module, '__file__', '')
-            if path[-4:] in ('.pyo', '.pyc'): path = path[:-1]
-            if path and exists(path): files[path] = mtime(path)
-
-        while not self.status:
-            if not exists(self.lockfile)\
-            or mtime(self.lockfile) < time.time() - self.interval - 5:
-                self.status = 'error'
-                thread.interrupt_main()
-            for path, lmtime in list(files.items()):
-                if not exists(path) or mtime(path) > lmtime:
-                    self.status = 'reload'
-                    thread.interrupt_main()
-                    break
-            time.sleep(self.interval)
-
-    def __enter__(self):
-        self.start()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if not self.status: self.status = 'exit' # silent exit
-        self.join()
-        return exc_type is not None and issubclass(exc_type, KeyboardInterrupt)
-
-
 
 
 
@@ -2980,72 +2721,6 @@ class BaseTemplate(object):
         or directly, as keywords (kwargs).
         """
         raise NotImplementedError
-
-
-class MakoTemplate(BaseTemplate):
-    def prepare(self, **options):
-        from mako.template import Template
-        from mako.lookup import TemplateLookup
-        options.update({'input_encoding':self.encoding})
-        options.setdefault('format_exceptions', bool(DEBUG))
-        lookup = TemplateLookup(directories=self.lookup, **options)
-        if self.source:
-            self.tpl = Template(self.source, lookup=lookup, **options)
-        else:
-            self.tpl = Template(uri=self.name, filename=self.filename, lookup=lookup, **options)
-
-    def render(self, *args, **kwargs):
-        for dictarg in args: kwargs.update(dictarg)
-        _defaults = self.defaults.copy()
-        _defaults.update(kwargs)
-        return self.tpl.render(**_defaults)
-
-
-class CheetahTemplate(BaseTemplate):
-    def prepare(self, **options):
-        from Cheetah.Template import Template
-        self.context = threading.local()
-        self.context.vars = {}
-        options['searchList'] = [self.context.vars]
-        if self.source:
-            self.tpl = Template(source=self.source, **options)
-        else:
-            self.tpl = Template(file=self.filename, **options)
-
-    def render(self, *args, **kwargs):
-        for dictarg in args: kwargs.update(dictarg)
-        self.context.vars.update(self.defaults)
-        self.context.vars.update(kwargs)
-        out = str(self.tpl)
-        self.context.vars.clear()
-        return out
-
-
-class Jinja2Template(BaseTemplate):
-    def prepare(self, filters=None, tests=None, **kwargs):
-        from jinja2 import Environment, FunctionLoader
-        if 'prefix' in kwargs: # TODO: to be removed after a while
-            raise RuntimeError('The keyword argument `prefix` has been removed. '
-                'Use the full jinja2 environment name line_statement_prefix instead.')
-        self.env = Environment(loader=FunctionLoader(self.loader), **kwargs)
-        if filters: self.env.filters.update(filters)
-        if tests: self.env.tests.update(tests)
-        if self.source:
-            self.tpl = self.env.from_string(self.source)
-        else:
-            self.tpl = self.env.get_template(self.filename)
-
-    def render(self, *args, **kwargs):
-        for dictarg in args: kwargs.update(dictarg)
-        _defaults = self.defaults.copy()
-        _defaults.update(kwargs)
-        return self.tpl.render(**_defaults)
-
-    def loader(self, name):
-        fname = self.search(name, self.lookup)
-        if not fname: return
-        with open(fname, "rb") as f:
-            return f.read().decode(self.encoding)
 
 
 class SimpleTemplate(BaseTemplate):
@@ -3229,10 +2904,6 @@ def template(*args, **kwargs):
     for dictarg in args[1:]: kwargs.update(dictarg)
     return TEMPLATES[tplid].render(kwargs)
 
-mako_template = functools.partial(template, template_adapter=MakoTemplate)
-cheetah_template = functools.partial(template, template_adapter=CheetahTemplate)
-jinja2_template = functools.partial(template, template_adapter=Jinja2Template)
-
 
 def view(tpl_name, **defaults):
     ''' Decorator: renders a template for a handler.
@@ -3257,10 +2928,6 @@ def view(tpl_name, **defaults):
             return result
         return wrapper
     return decorator
-
-mako_view = functools.partial(view, template_adapter=MakoTemplate)
-cheetah_view = functools.partial(view, template_adapter=CheetahTemplate)
-jinja2_view = functools.partial(view, template_adapter=Jinja2Template)
 
 
 
