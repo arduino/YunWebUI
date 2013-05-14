@@ -133,8 +133,7 @@ def upload_sketch():
       sketch = f.readlines()
     # removing sketch last line
     sketch = sketch[:-1]
-    #with open("/etc/arduino/Caterina-Etheris.hex", "r") as f:
-    with open("/etc/arduino/optiboot_atmega328.hex", "r") as f:
+    with open("/etc/arduino/Caterina-Etheris.hex", "r") as f:
       bootloader = f.readlines()
     # appending bootloader to sketch
     sketch = sketch + bootloader
@@ -142,10 +141,9 @@ def upload_sketch():
     with open("/tmp/" + upload.filename, "w") as f:
       f.writelines(sketch)
 
-    #command = "avrdude -C/etc/avrdude.conf -patmega32u4 -cavr109 -P/dev/ttyACM0 -b57600 -Uflash:w:/tmp/" + upload.filename + ":i"
-    command = "avrdude -C/etc/avrdude.conf -pm328p -clinuxgpio -Uflash:w:/tmp/" + upload.filename + ":i"
+    command = "run-avrdude /tmp/" + upload.filename
     if request.forms.params:
-      command = command + " " + request.forms.params
+      command = command + " '" + request.forms.params + "'"
     try:
       output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
       return HTTPResponse(output, status=200)
