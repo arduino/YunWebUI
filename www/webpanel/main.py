@@ -150,7 +150,7 @@ def upload_sketch():
     except subprocess.CalledProcessError as e:
       return HTTPResponse(e.output, status=500)
   except Exception as e:
-    return HTTPResponse(e.output, status=500)
+    return HTTPResponse(e.message, status=500)
   finally:
     os.remove("/tmp/" + upload.filename)
 
