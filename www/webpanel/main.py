@@ -141,6 +141,9 @@ def upload_sketch():
     with open("/tmp/" + upload.filename, "w") as f:
       f.writelines(sketch)
 
+    kill_bridge = subprocess.Popen(["kill-bridge"])
+    kill_bridge.wait()
+
     command = "run-avrdude /tmp/" + upload.filename
     if request.forms.params:
       command = command + " '" + request.forms.params + "'"
