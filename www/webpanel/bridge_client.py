@@ -14,7 +14,7 @@ def send_command(command, params):
     params_parts = params.split("/")
     request["key"] = params_parts[0]
     request["value"] = params_parts[1]
-  else
+  else:
     raise Exception("unknown command")
 
   try:
