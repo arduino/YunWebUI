@@ -18,9 +18,7 @@ def send_command(command, params):
     raise Exception("unknown command")
 
   try:
-    bridge = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    bridge.settimeout(5)
-    bridge.connect(("127.0.0.1", 5700))
+    bridge = socket.create_connection(("127.0.0.1", 5700), 5, ("127.0.0.1", 0))
     
     command = json.write(request)
     while len(command) > 0:
@@ -34,7 +32,8 @@ def send_command(command, params):
         if command_response == "":
           return None
         json_response, l = json.read(command_response)
-        return json_response
+        command_response = json.write(json_response)
+        return command_response
       except json.ReadException as json_ex:
         # json parse error. read more data and retry
         pass

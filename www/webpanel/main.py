@@ -158,7 +158,7 @@ def upload_sketch():
     os.remove("/tmp/" + upload.filename)
 
 @app.route("/board/<command>/<params:path>", ["GET", "POST"])
-def board_send_command(command):
+def board_send_command(command, params):
   command_response = bridge_client.send_command(command, params)
 
   if command_response != None:
