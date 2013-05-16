@@ -2,13 +2,27 @@ import socket
 
 import json
 
-def send_command(command_parts):
+def send_command(command, params):
+  request = {
+    "command": command
+  }
+  if command == "raw":
+    request["data"] = params
+  elif command == "get":
+    request["key"] = params.split("/")[0]
+  elif command == "put":
+    params_parts = params.split("/")
+    request["key"] = params_parts[0]
+    request["value"] = params_parts[1]
+  else
+    raise Exception("unknown command")
+
   try:
     bridge = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     bridge.settimeout(5)
-    bridge.connect(("localhost", 6571))
-  
-    command = json.write(command_parts)
+    bridge.connect(("127.0.0.1", 5700))
+    
+    command = json.write(request)
     while len(command) > 0:
       sent = bridge.send(command)
       command = command[sent:]
