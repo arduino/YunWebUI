@@ -96,7 +96,7 @@ function homepage()
 		ctx["update_file"] = update_file
 	end
 
-	luci.template.render("homepage", ctx)
+	luci.template.render("arduino/homepage", ctx)
 end
 
 function config()
@@ -250,7 +250,7 @@ function config_get()
 		encryptions = encryptions
 	}
 
-	luci.template.render("config", ctx)
+	luci.template.render("arduino/config", ctx)
 end
 
 function config_post()
@@ -296,7 +296,7 @@ function config_post()
 	uci:commit("wireless")
 	uci:commit("network")
 
-	luci.template.render("rebooting", {})
+	luci.template.render("arduino/rebooting", {})
 
 	luci.util.exec("reboot")
 end
