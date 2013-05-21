@@ -298,9 +298,10 @@ function config_post()
 
 	uci:delete("network", "lan", "ifname")
 	uci:delete("network", "lan", "type")
-	uci:delete("network", "lan", "proto")
 	uci:delete("network", "lan", "ipaddr")
 	uci:delete("network", "lan", "netmask")
+
+	uci:set("network", "lan", "proto", "dhcp")
 
 	uci:commit("system")
 	uci:commit("wireless")
