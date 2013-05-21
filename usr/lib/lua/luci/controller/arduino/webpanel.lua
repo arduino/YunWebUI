@@ -42,6 +42,18 @@ local function update_file()
 	return nil
 end
 
+local function get_first(cursor, config, type, option)
+  return cursor:get_first(config, type, option)
+end
+
+local function set_first(cursor, config, type, option, value)
+  cursor:foreach(config, type, function(s)
+    if s[".type"] == type then
+      cursor:set(config, s[".name"], option, value)
+    end
+  end)
+end
+
 function index()
 	homepage = entry({"arduino"}, call("homepage"), _("Arduino Web Panel"), 10)
 	homepage.dependent = false
@@ -239,11 +251,11 @@ function config_get()
 	encryptions[4] = { code = "psk2", name = "WPA2" }
 
 	ctx = {
-		hostname = uci:get("system", "@system[0]", "hostname"),
+		hostname = get_first(uci, "system", "system", "hostname"),
 		wifi = {
-			ssid = uci:get("wireless", "@wifi-iface[0]", "ssid"),
-			encryption = uci:get("wireless", "@wifi-iface[0]", "encryption"),
-			password = uci:get("wireless", "@wifi-iface[0]", "key"),
+			ssid = get_first(uci, "wireless", "wifi-iface", "ssid"),
+			encryption = get_first(uci, "wireless", "wifi-iface", "encryption"),
+			password = get_first(uci, "wireless", "wifi-iface", "key"),
 			country = uci:get("wireless", "radio0", "country")
 		},
 		countries = countries,
@@ -265,22 +277,20 @@ function config_post()
 
 	if param("hostname") then
 		local hostname = string.gsub(param("hostname"), " ", "_")
-		uci:foreach("system", "system", function(s)
-			uci:set("system", s[".name"], "hostname", hostname)
-		end)
+		set_first(uci, "system", "system", "hostname", hostname)
 	end
 
 	uci:set("wireless", "radio0", "channel", "auto")
-	uci:set("wireless", "@wifi-iface[0]", "mode", "sta")
+	set_first(uci, "wireless", "wifi-iface", "mode", "sta")
 
 	if param("wifi.ssid") then
-		uci:set("wireless", "@wifi-iface[0]", "ssid", param("wifi.ssid"))
+	  set_first(uci, "wireless", "wifi-iface", "ssid", param("wifi.ssid"))
 	end
 	if param("wifi.encryption") then
-		uci:set("wireless", "@wifi-iface[0]", "encryption", param("wifi.encryption"))
+	  set_first(uci, "wireless", "wifi-iface", "encryption", param("wifi.encryption"))
 	end
 	if param("wifi.password") then
-		uci:set("wireless", "@wifi-iface[0]", "key", param("wifi.password"))
+	  set_first(uci, "wireless", "wifi-iface", "key", param("wifi.password"))
 	end
 	if param("wifi.country") then
 		uci:set("wireless", "radio0", "country", param("wifi.country"))
