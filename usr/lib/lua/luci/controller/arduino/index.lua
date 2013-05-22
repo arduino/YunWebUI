@@ -1,6 +1,71 @@
 module("luci.controller.arduino.index", package.seeall)
 
-utils = require("luci.controller.arduino.utils")
+local function file_exists(file)
+  local f = io.open(file, "rb")
+  if f then f:close() end
+  return f ~= nil
+end
+
+local function lines_from(file)
+  lines = {}
+  for line in io.lines(file) do
+    lines[#lines + 1] = line
+  end
+  return lines
+end
+
+local function rfind(s, c)
+  last = 1
+  while string.find(s, c, last, true) do
+    last = string.find(s, c, last, true) + 1
+  end
+  return last
+end
+
+local function param(name)
+  val = luci.http.formvalue(name)
+  if val then
+    val = luci.util.trim(val)
+    if string.len(val) > 0 then
+      return val
+    end
+    return nil
+  end
+  return nil
+end
+
+local function check_update_file()
+  update_file = luci.util.exec("update-file-available")
+  if update_file and string.len(update_file) > 0 then
+    return update_file
+  end
+  return nil
+end
+
+local function get_first(cursor, config, type, option)
+  return cursor:get_first(config, type, option)
+end
+
+local function set_first(cursor, config, type, option, value)
+  cursor:foreach(config, type, function(s)
+    if s[".type"] == type then
+      cursor:set(config, s[".name"], option, value)
+    end
+  end)
+end
+
+local function dump(o)
+  if type(o) == 'table' then
+    local s = '{ '
+    for k, v in pairs(o) do
+      if type(k) ~= 'number' then k = '"' .. k .. '"' end
+      s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
+    end
+    return s .. '} '
+  else
+    return tostring(o)
+  end
+end
 
 function index()
   local function protected_entry(path, target, title, order)
@@ -9,20 +74,12 @@ function index()
     page.sysauth_authenticator = "htmlauth"
   end
 
-  entry({ "arduino", "ready" }, call("are_you_ready"), "", 10).leaf = true
   protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
   protected_entry({ "arduino", "config" }, call("config"), _("Arduino Web Panel"), 10)
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Arduino Web Panel"), 10)
 end
 
-function are_you_ready()
-  print("ciao")
-end
-
 function homepage()
-  print(dump(context))
-  print(dump(luci.http.getenv("HTTP_AUTH_USER")))
-  print(dump(luci.http.getenv("HTTP_AUTH_PASS")))
   local wa = require("luci.tools.webadmin")
   local network = luci.model.uci.cursor_state():get_all("network")
   local ifaces = {}
@@ -58,13 +115,13 @@ function homepage()
     ifaces = ifaces
   }
 
-  if utils.file_exists("/last_dmesg_with_wifi_errors.log") then
-    ctx["last_log"] = utils.lines_from("/last_dmesg_with_wifi_errors.log")
+  if file_exists("/last_dmesg_with_wifi_errors.log") then
+    ctx["last_log"] = lines_from("/last_dmesg_with_wifi_errors.log")
   end
 
-  update_file = utils.update_file()
+  update_file = check_update_file()
   if update_file then
-    update_file = string.sub(update_file, utils.rfind(update_file, "/"))
+    update_file = string.sub(update_file, rfind(update_file, "/"))
     ctx["update_file"] = update_file
   end
 
@@ -211,11 +268,11 @@ function config_get()
   encryptions[4] = { code = "psk2", name = "WPA2" }
 
   ctx = {
-    hostname = utils.get_first(uci, "system", "system", "hostname"),
+    hostname = get_first(uci, "system", "system", "hostname"),
     wifi = {
-      ssid = utils.get_first(uci, "wireless", "wifi-iface", "ssid"),
-      encryption = utils.get_first(uci, "wireless", "wifi-iface", "encryption"),
-      password = utils.get_first(uci, "wireless", "wifi-iface", "key"),
+      ssid = get_first(uci, "wireless", "wifi-iface", "ssid"),
+      encryption = get_first(uci, "wireless", "wifi-iface", "encryption"),
+      password = get_first(uci, "wireless", "wifi-iface", "key"),
       country = uci:get("wireless", "radio0", "country")
     },
     countries = countries,
@@ -226,8 +283,8 @@ function config_get()
 end
 
 function config_post()
-  if utils.param("password") then
-    luci.sys.user.setpasswd("root", utils.param("password"))
+  if param("password") then
+    luci.sys.user.setpasswd("root", param("password"))
   end
 
   local uci = luci.model.uci.cursor()
@@ -235,25 +292,25 @@ function config_post()
   uci:load("wireless")
   uci:load("network")
 
-  if utils.param("hostname") then
-    local hostname = string.gsub(utils.param("hostname"), " ", "_")
-    utils.set_first(uci, "system", "system", "hostname", hostname)
+  if param("hostname") then
+    local hostname = string.gsub(param("hostname"), " ", "_")
+    set_first(uci, "system", "system", "hostname", hostname)
   end
 
   uci:set("wireless", "radio0", "channel", "auto")
-  utils.set_first(uci, "wireless", "wifi-iface", "mode", "sta")
+  set_first(uci, "wireless", "wifi-iface", "mode", "sta")
 
-  if utils.param("wifi.ssid") then
-    utils.set_first(uci, "wireless", "wifi-iface", "ssid", utils.param("wifi.ssid"))
+  if param("wifi.ssid") then
+    set_first(uci, "wireless", "wifi-iface", "ssid", param("wifi.ssid"))
   end
-  if utils.param("wifi.encryption") then
-    utils.set_first(uci, "wireless", "wifi-iface", "encryption", utils.param("wifi.encryption"))
+  if param("wifi.encryption") then
+    set_first(uci, "wireless", "wifi-iface", "encryption", param("wifi.encryption"))
   end
-  if utils.param("wifi.password") then
-    utils.set_first(uci, "wireless", "wifi-iface", "key", utils.param("wifi.password"))
+  if param("wifi.password") then
+    set_first(uci, "wireless", "wifi-iface", "key", param("wifi.password"))
   end
-  if utils.param("wifi.country") then
-    uci:set("wireless", "radio0", "country", utils.param("wifi.country"))
+  if param("wifi.country") then
+    uci:set("wireless", "radio0", "country", param("wifi.country"))
   end
 
   uci:delete("network", "lan", "ifname")
@@ -273,23 +330,10 @@ function config_post()
 end
 
 function reset_board()
-  update_file = utils.update_file()
-  if utils.param("button") and update_file then
+  update_file = check_update_file()
+  if param("button") and update_file then
     luci.util.exec("blink-start 50")
     luci.util.exec("run-sysupgrade " .. update_file)
-  end
-end
-
-function dump(o)
-  if type(o) == 'table' then
-    local s = '{ '
-    for k, v in pairs(o) do
-      if type(k) ~= 'number' then k = '"' .. k .. '"' end
-      s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
-    end
-    return s .. '} '
-  else
-    return tostring(o)
   end
 end
 
