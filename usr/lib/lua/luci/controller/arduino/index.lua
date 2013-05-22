@@ -1,4 +1,4 @@
-module("luci.controller.arduino.webpanel", package.seeall)
+module("luci.controller.arduino.index", package.seeall)
 
 utils = require("luci.controller.arduino.utils")
 

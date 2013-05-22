@@ -1,5 +1,7 @@
 module("luci.controller.arduino.utils", package.seeall)
 
+function index() end
+
 function file_exists(file)
   local f = io.open(file, "rb")
   if f then f:close() end
