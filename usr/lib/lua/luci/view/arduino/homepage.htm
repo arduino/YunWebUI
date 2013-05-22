@@ -1,6 +1,6 @@
 <%
 local http = require("luci.http")
-http.prepare_content("text/html")
+http.prepare_content("text/html; charset=utf-8")
 -%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -29,18 +29,23 @@ Welcome to <%= hostname %>, your Arduino Yún 云<br/><br/>
 This is my current network connection:<br/>
 <% for name, data in pairs(ifaces) do %>
 Name: <%= name %>
+<% if data["address"] then %>
 <br/>
-Address: <%= data["address"] %> (Netmask: <%= data["netmask"] %>)<br/>
+Address: <%= data["address"] %> (Netmask: <%= data["netmask"] %>)
+<% else %>
+(disconnected)
+<% end %>
+<br/>
 MAC Address: <%= data["mac"] %><br/>
 Received <%= data["rx"] %>, trasmitted <%= data["tx"] %><br/>
 <br/>
 <% end %>
 
-<form method="get" action="arduino/config">
+<form method="get" action="<%= pcdata(controller .. '/arduino/config') %>">
   <ul>
     <li>
       <div class="input_container">
-        <input class="btTxt submit saveForm" type="submit" value="Configure" onclick="javascript:return goto('arduino/config');">
+        <input class="btTxt submit saveForm" type="submit" value="Configure" onclick="javascript:return goto('<%= pcdata(controller .. '/arduino/config') %>');">
       </div>
     </li>
   </ul>
@@ -53,7 +58,7 @@ A file named <%= update_file %> has been found on the SD card.<br/>
 Do you wish to use it to reset your Yún 云?<br/>
 <strong>ATTENTION!!</strong> You'll loose everything stored on the Yún 云 and it will then look brand new! Back it up before proceeding!<br/>
 
-<form method="post" action="arduino/reset_board">
+<form method="post" action="<%= pcdata(controller .. '/arduino/reset_board') %>">
   <ul>
     <li>
       <div class="input_container">
@@ -70,9 +75,9 @@ There's been a problem last time I tried configuring wifi. Check the following l
 <textarea rows="20">
 <% for i,line in pairs(last_log) do %><%= line %>
 <% end %>
-<% end %>
 </textarea>
 <script language="javascript">document.getElementsByTagName("textarea")[0].scrollTop = 99999;</script>
+<% end %>
     </div>
   </div>
   <!-- #content -->

@@ -1,6 +1,6 @@
 <%
 local http = require("luci.http")
-http.prepare_content("text/html")
+http.prepare_content("text/html; charset=utf-8")
 -%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -24,7 +24,7 @@ http.prepare_content("text/html")
   </div>
   <div id="content">
     <div class="wrapper">
-<form id="form1" name="form1" method="post" action="config" onsubmit="javascript:return formCheck(this);">
+<form id="form1" name="form1" method="post" action="<%= pcdata(controller .. '/arduino/config') %>" onsubmit="javascript:return formCheck(this);">
   <div id="error_container" class="hidden">
     <p>An error has occurred.</p>
   </div>

@@ -33,6 +33,9 @@ function formCheck(form) {
     if (hostname.value == null || hostname.value == "") {
         errorHandler(hostname, errContainer, "Please choose a name for your Yún 云");
         errors = true;
+    } else if (hostname.value.match(/[^a-zA-Z0-9_]/)) {
+        errorHandler(hostname, errContainer, "Incorrect hostname: you can use only characters between a and z, numbers and the underscore (_)");
+        errors = true;
     }
 
     if (password.value != null && password.value != "" && password.value.length < 8) {
