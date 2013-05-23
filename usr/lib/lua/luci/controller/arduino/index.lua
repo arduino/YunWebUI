@@ -68,10 +68,26 @@ local function dump(o)
 end
 
 function index()
+  function luci.dispatcher.authenticator.arduinoauth(validator, accs, default)
+    local user = luci.http.formvalue("username")
+    local pass = luci.http.formvalue("password")
+
+    if user and validator(user, pass) then
+      return user
+    end
+
+    require("luci.i18n")
+    require("luci.template")
+    context.path = {}
+    luci.template.render("arduino/set_password", {duser=default, fuser=user})
+    return false
+
+  end
+
   local function protected_entry(path, target, title, order)
     local page = entry(path, target, title, order)
     page.sysauth = "root"
-    page.sysauth_authenticator = "htmlauth"
+    page.sysauth_authenticator = "arduinoauth"
   end
 
   protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
