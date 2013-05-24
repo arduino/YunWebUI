@@ -416,4 +416,14 @@ function after_upload()
   
   final_sketch:flush()
   final_sketch:close()
+
+  luci.util.exec("kill-bridge")
+  local command = "run-avrdude " .. uploaded
+  if param("params") then
+    command = command .. " '" .. param("params") .. "'"
+  end
+
+  local output = luci.util.exec(command)
+  luci.http.prepare_content("text/plain")
+  luci.http.write(output)
 end
