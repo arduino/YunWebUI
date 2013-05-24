@@ -77,7 +77,7 @@ function index()
     end
 
     local basic_auth = luci.http.getenv("HTTP_AUTHORIZATION")
-    if basic_auth then
+    if basic_auth and basic_auth ~= "" then
       local decoded_basic_auth = nixio.bin.b64decode(string.sub(basic_auth, 7))
       user = string.sub(decoded_basic_auth, 0, string.find(decoded_basic_auth, ":") - 1)
       pass = string.sub(decoded_basic_auth, string.find(decoded_basic_auth, ":") + 1)
@@ -87,7 +87,7 @@ function index()
       return user
     end
 
-    if basic_auth then
+    if basic_auth and basic_auth ~= "" then
       luci.http.status(403, "Access to command denied")
     else
       luci.template.render("arduino/set_password", { duser = default, fuser = user })
@@ -102,10 +102,30 @@ function index()
     page.sysauth_authenticator = "arduinoauth"
   end
 
+  local fp
+  luci.http.setfilehandler(function(meta, chunk, eof)
+    if not luci.http.getenv("PATH_INFO"):match("/arduino/upload") then
+      return
+    end
+    if not fp and meta and meta.name == "sketch" then
+      local uploaded_filename = "/tmp/" .. luci.http.formvalue("sketch")
+      luci.http.getenv()["UPLOADED_FILENAME"] = uploaded_filename
+      fp = io.open(uploaded_filename, "w")
+    end
+    if fp then
+      if chunk then
+        fp:write(chunk)
+      end
+      if eof then
+        fp:close()
+      end
+    end
+  end)
+
   protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
-  protected_entry({ "arduino", "config" }, call("config"), _("Arduino Web Panel"), 10)
-  protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Arduino Web Panel"), 10)
-  protected_entry({ "arduino", "upload" }, call("upload"), _("Arduino Web Panel"), 10)
+  protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
+  protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30)
+  protected_entry({ "arduino", "upload" }, call("upload"), _("Upload sketch"), 40)
 end
 
 function homepage()
@@ -367,21 +387,8 @@ function reset_board()
 end
 
 function upload()
-  local fp
-  luci.http.setfilehandler(function(meta, chunk, eof)
-    luci.http.write(meta)
-    luci.http.write(chunk)
-    luci.http.write(eof)
-    if not fp and meta and meta.name == "sketch" then
-      fp = io.open("/tmp/asdasd.123", "w")
-    end
-    if fp then
-      if chunk then
-        fp:write(chunk)
-      end
-      if eof then
-        fp:close()
-      end
-    end
-  end)
+  print("setting filehandler")
+  print(dump(luci.http.getenv("PATH_INFO")))
+  print(uploaded_filename)
+  print(luci.http.getenv("UPLOADED_FILENAME"))
 end
