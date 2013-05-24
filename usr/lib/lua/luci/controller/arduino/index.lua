@@ -125,7 +125,7 @@ function index()
   protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
   protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30)
-  protected_entry({ "arduino", "upload" }, call("upload"), _("Upload sketch"), 40)
+  protected_entry({ "arduino", "upload" }, call("after_upload"), _("Upload sketch"), 40)
 end
 
 function homepage()
@@ -386,9 +386,34 @@ function reset_board()
   end
 end
 
-function upload()
-  print("setting filehandler")
-  print(dump(luci.http.getenv("PATH_INFO")))
-  print(uploaded_filename)
-  print(luci.http.getenv("UPLOADED_FILENAME"))
+function after_upload()
+  local uploaded = luci.http.getenv("UPLOADED_FILENAME")
+  local ext = ".hex"
+  if not uploaded or not uploaded:find(ext, #uploaded - #ext + 1) then
+    luci.http.status(500, "Invalid file uploaded")
+  end
+
+  local sketch = {}
+  for line in io.lines(uploaded) do
+    table.insert(sketch, line)
+  end
+
+  for line in io.lines("/etc/arduino/Caterina-Yun.hex") do
+    table.insert(sketch, line)
+  end
+
+  final_sketch = io.open(uploaded, "w+")
+  if not final_sketch then
+    luci.http.status(500, "Unable to open file for writing")
+  end
+
+  for idx, line in ipairs(sketch) do
+    line = string.gsub(line, "\n", "")
+    line = string.gsub(line, "\r", "")
+    final_sketch:write(line)
+    final_sketch:write("\n")
+  end
+  
+  final_sketch:flush()
+  final_sketch:close()
 end
