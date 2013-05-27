@@ -78,12 +78,20 @@ function index()
       pass = string.sub(decoded_basic_auth, string.find(decoded_basic_auth, ":") + 1)
     end
 
-    if user and validator(user, pass) then
-      return user
+    if user then
+      if #pass ~= 64 and validator(user, pass) then
+        return user
+      else
+        encrypted_pass = get_first(uci, "arduino", "arduino", "password")
+        stored_encrypted_pass = get_first(uci, "arduino", "arduino", "password")
+        if encrypted_pass == stored_encrypted_pass then
+          return user
+        end
+      end
     end
 
     if basic_auth and basic_auth ~= "" then
-      http_error(403, "Access to command denied")
+      http_error(403, luci.sys.user.getpasswd(user))
     else
       luci.template.render("arduino/set_password", { duser = default, fuser = user })
     end
@@ -330,7 +338,11 @@ end
 
 function config_post()
   if param("password") then
-    luci.sys.user.setpasswd("root", param("password"))
+    local password = param("password")
+    luci.sys.user.setpasswd("root", password)
+
+    local sha256 = require("luci.sha256")
+    set_first(uci, "arduino", "arduino", "password", sha256.sha256(password))
   end
 
   local uci = luci.model.uci.cursor()
