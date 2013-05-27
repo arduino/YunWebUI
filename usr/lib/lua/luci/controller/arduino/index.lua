@@ -446,9 +446,9 @@ function board_send_command()
   -- TODO check method?
   if command == "raw" then
     bridge_request["data"] = table.concat(params, "/")
-  elseif command == "get" then
+  elseif command == "get" and params[1] and params[1] ~= "" then
     bridge_request["key"] = params[1]
-  elseif command == "put" then
+  elseif command == "put" and params[1] and params[1] ~= "" and params[2] then
     bridge_request["key"] = params[1]
     bridge_request["value"] = params[2]
   else
