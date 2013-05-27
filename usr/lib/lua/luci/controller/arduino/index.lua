@@ -81,7 +81,7 @@ function index()
     if user then
       if #pass ~= 64 and validator(user, pass) then
         return user
-      else
+      elseif #pass == 64 then
         encrypted_pass = get_first(uci, "arduino", "arduino", "password")
         stored_encrypted_pass = get_first(uci, "arduino", "arduino", "password")
         if encrypted_pass == stored_encrypted_pass then

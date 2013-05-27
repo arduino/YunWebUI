@@ -4,10 +4,13 @@
 <body style="background-color: black">
 <a style="color: white; text-decoration: none" href="#">Wait a moment...</a>
 <script language="JavaScript">
-  var oldURL = window.location.hostname + window.location.pathname;
-  var newURL = "https://" + oldURL;
-  document.getElementsByTagName("a")[0].href = newURL;
-  window.location = newURL;
+  if (window.location.protocol === "http:") {
+    var newUrl = "https://" + window.location.hostname;
+    document.getElementsByTagName("a")[0].href = newUrl;
+    window.location = newURL;
+  } else {
+    window.location = "/cgi-bin/luci/arduino";
+  }
 </script>
 </body>
 </html>
