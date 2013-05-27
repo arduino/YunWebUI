@@ -426,6 +426,7 @@ function after_upload()
 end
 
 function board_send_command()
+  local method = luci.http.getenv("REQUEST_METHOD")
   local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
   local command = parts[4]
   if not command or command == "" then
@@ -444,8 +445,7 @@ function board_send_command()
   }
   -- TODO check method?
   if command == "raw" then
-    -- TODO params join
-    bridge_request["data"] = params
+    bridge_request["data"] = table.concat(params, "/")
   elseif command == "get" then
     bridge_request["key"] = params[1]
   elseif command == "put" then
@@ -458,7 +458,9 @@ function board_send_command()
 
   local sock, code, msg = nixio.connect("127.0.0.1", 5700)
   if not sock then
-    http_error(500, "" .. code .. " " .. msg)
+    code = code or ""
+    msg = msg or ""
+    http_error(500, "nil socket, " .. code .. " " .. msg)
     return
   end
 
@@ -467,24 +469,20 @@ function board_send_command()
 
   json = require("luci.json")
 
-  sock:sendall(json.encode(bridge_request) .. "\n")
+  sock:writeall(json.encode(bridge_request) .. "\n")
 
-  local linesrc = sock:linesource()
-  local response_text, code, msg = linesrc()
-
-  if not response_text then
-    sock:close()
-    http_error(500, "" .. code .. " " .. msg)
-    return
-  end
-
-  if response_text == "" then
-    luci.http.status(200)
-    return
-  end
-
-  --TODO timeout not handled as soon as one char is sent. what's linesrc(true) ?
+  local response_text = ""
   while true do
+    local bytes = sock:recv(4096)
+    if bytes then
+      response_text = response_text .. bytes
+    end
+
+    if response_text == "" then
+      luci.http.status(200)
+      return
+    end
+
     json_response = json.decode(response_text)
     if json_response then
       luci.http.prepare_content("application/json")
@@ -493,9 +491,10 @@ function board_send_command()
       sock:close()
       return
     end
-    local line = linesrc()
-    if line then
-      response_text = response_text .. line
+
+    if not bytes then
+      http_error(500, "Empty response")
+      return
     end
   end
 end
