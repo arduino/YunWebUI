@@ -127,9 +127,9 @@ function index()
   end)
 
   protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
-  protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
-  protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30)
-  protected_entry({ "arduino", "upload" }, call("after_upload"), _("Upload sketch"), 40)
+  protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20).leaf = true
+  protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30).leaf = true
+  protected_entry({ "arduino", "upload" }, call("after_upload"), _("Upload sketch"), 40).leaf = true
   protected_entry({ "arduino", "board" }, call("board_send_command"), _("Board send command"), 50).leaf = true
 end
 
@@ -400,6 +400,7 @@ function after_upload()
   local ext = ".hex"
   if not uploaded or not uploaded:find(ext, #uploaded - #ext + 1) then
     http_error(500, "Invalid file uploaded")
+    return
   end
 
   local sketch = {}
@@ -414,6 +415,7 @@ function after_upload()
   final_sketch = io.open(uploaded, "w+")
   if not final_sketch then
     http_error(500, "Unable to open file for writing")
+    return
   end
 
   for idx, line in ipairs(sketch) do
