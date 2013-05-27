@@ -54,16 +54,11 @@ local function set_first(cursor, config, type, option, value)
   end)
 end
 
-local function dump(o)
-  if type(o) == 'table' then
-    local s = '{ '
-    for k, v in pairs(o) do
-      if type(k) ~= 'number' then k = '"' .. k .. '"' end
-      s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
-    end
-    return s .. '} '
-  else
-    return tostring(o)
+local function http_error(code, text)
+  luci.http.prepare_content("text/plain")
+  luci.http.status(code)
+  if text then
+    luci.http.write(text)
   end
 end
 
@@ -88,7 +83,7 @@ function index()
     end
 
     if basic_auth and basic_auth ~= "" then
-      luci.http.status(403, "Access to command denied")
+      http_error(403, "Access to command denied")
     else
       luci.template.render("arduino/set_password", { duser = default, fuser = user })
     end
@@ -100,6 +95,7 @@ function index()
     local page = entry(path, target, title, order)
     page.sysauth = "root"
     page.sysauth_authenticator = "arduinoauth"
+    return page
   end
 
   local fp
@@ -126,6 +122,7 @@ function index()
   protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30)
   protected_entry({ "arduino", "upload" }, call("after_upload"), _("Upload sketch"), 40)
+  protected_entry({ "arduino", "board" }, call("board_send_command"), _("Board send command"), 50).leaf = true
 end
 
 function homepage()
@@ -390,7 +387,7 @@ function after_upload()
   local uploaded = luci.http.getenv("UPLOADED_FILENAME")
   local ext = ".hex"
   if not uploaded or not uploaded:find(ext, #uploaded - #ext + 1) then
-    luci.http.status(500, "Invalid file uploaded")
+    http_error(500, "Invalid file uploaded")
   end
 
   local sketch = {}
@@ -404,7 +401,7 @@ function after_upload()
 
   final_sketch = io.open(uploaded, "w+")
   if not final_sketch then
-    luci.http.status(500, "Unable to open file for writing")
+    http_error(500, "Unable to open file for writing")
   end
 
   for idx, line in ipairs(sketch) do
@@ -413,7 +410,7 @@ function after_upload()
     final_sketch:write(line)
     final_sketch:write("\n")
   end
-  
+
   final_sketch:flush()
   final_sketch:close()
 
@@ -426,4 +423,79 @@ function after_upload()
   local output = luci.util.exec(command)
   luci.http.prepare_content("text/plain")
   luci.http.write(output)
+end
+
+function board_send_command()
+  local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
+  local command = parts[4]
+  if not command or command == "" then
+    http_error(404)
+    return
+  end
+  local params = {}
+  for idx, param in ipairs(parts) do
+    if idx > 4 then
+      table.insert(params, param)
+    end
+  end
+
+  local bridge_request = {
+    command = command
+  }
+  -- TODO check method?
+  if command == "raw" then
+    -- TODO params join
+    bridge_request["data"] = params
+  elseif command == "get" then
+    bridge_request["key"] = params[1]
+  elseif command == "put" then
+    bridge_request["key"] = params[1]
+    bridge_request["value"] = params[2]
+  else
+    http_error(404)
+    return
+  end
+
+  local sock, code, msg = nixio.connect("127.0.0.1", 5700)
+  if not sock then
+    http_error(500, "" .. code .. " " .. msg)
+    return
+  end
+
+  sock:setsockopt("socket", "sndtimeo", 5)
+  sock:setsockopt("socket", "rcvtimeo", 5)
+
+  json = require("luci.json")
+
+  sock:sendall(json.encode(bridge_request) .. "\n")
+
+  local linesrc = sock:linesource()
+  local response_text, code, msg = linesrc()
+
+  if not response_text then
+    sock:close()
+    http_error(500, "" .. code .. " " .. msg)
+    return
+  end
+
+  if response_text == "" then
+    luci.http.status(200)
+    return
+  end
+
+  --TODO timeout not handled as soon as one char is sent. what's linesrc(true) ?
+  while true do
+    json_response = json.decode(response_text)
+    if json_response then
+      luci.http.prepare_content("application/json")
+      luci.http.status(200)
+      luci.http.write(json.encode(json_response))
+      sock:close()
+      return
+    end
+    local line = linesrc()
+    if line then
+      response_text = response_text .. line
+    end
+  end
 end
