@@ -84,7 +84,7 @@ function index()
       elseif #pass == 64 then
         local uci = luci.model.uci.cursor()
         uci:load("arduino")
-        local stored_encrypted_pass = get_first(uci, "arduino", "arduino", "password")
+        local stored_encrypted_pass = uci:get_first("arduino", "arduino", "password")
         if pass == stored_encrypted_pass then
           return user
         end
@@ -92,7 +92,8 @@ function index()
     end
 
     if basic_auth and basic_auth ~= "" then
-      http_error(403)
+      luci.http.prepare_content("text/plain")
+      luci.http.status(403)
     else
       luci.template.render("arduino/set_password", { duser = default, fuser = user })
     end
@@ -319,6 +320,12 @@ function config_get()
 end
 
 function config_post()
+  local uci = luci.model.uci.cursor()
+  uci:load("system")
+  uci:load("wireless")
+  uci:load("network")
+  uci:load("arduino")
+
   if param("password") then
     local password = param("password")
     luci.sys.user.setpasswd("root", password)
@@ -326,11 +333,6 @@ function config_post()
     local sha256 = require("luci.sha256")
     set_first(uci, "arduino", "arduino", "password", sha256.sha256(password))
   end
-
-  local uci = luci.model.uci.cursor()
-  uci:load("system")
-  uci:load("wireless")
-  uci:load("network")
 
   if param("hostname") then
     local hostname = string.gsub(param("hostname"), " ", "_")
@@ -363,6 +365,7 @@ function config_post()
   uci:commit("system")
   uci:commit("wireless")
   uci:commit("network")
+  uci:commit("arduino")
 
   luci.template.render("arduino/rebooting", {})
 
