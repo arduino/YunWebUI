@@ -82,9 +82,10 @@ function index()
       if #pass ~= 64 and validator(user, pass) then
         return user
       elseif #pass == 64 then
-        encrypted_pass = get_first(uci, "arduino", "arduino", "password")
-        stored_encrypted_pass = get_first(uci, "arduino", "arduino", "password")
-        if encrypted_pass == stored_encrypted_pass then
+        local uci = luci.model.uci.cursor()
+        uci:load("arduino")
+        local stored_encrypted_pass = get_first(uci, "arduino", "arduino", "password")
+        if pass == stored_encrypted_pass then
           return user
         end
       end
@@ -111,6 +112,7 @@ function index()
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30).leaf = true
   protected_entry({ "arduino", "flash" }, call("flash_sketch"), _("Flash uploaded sketch"), 40).leaf = true
   protected_entry({ "arduino", "board" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  protected_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60).leaf = true
 end
 
 function homepage()
@@ -373,6 +375,11 @@ function reset_board()
     luci.util.exec("blink-start 50")
     luci.util.exec("run-sysupgrade " .. update_file)
   end
+end
+
+function ready()
+  luci.http.status(200)
+  return
 end
 
 function flash_sketch()

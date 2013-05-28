@@ -110,8 +110,11 @@ local function read_sketch(accumulator)
   for idx, line in ipairs(sketch) do
     line = string.gsub(line, "\n", "")
     line = string.gsub(line, "\r", "")
-    final_sketch:write(line)
-    final_sketch:write("\n")
+    line = string.gsub(line, " ", "")
+    if line ~= "" then
+      final_sketch:write(line)
+      final_sketch:write("\n")
+    end
   end
 
   final_sketch:flush()
@@ -151,6 +154,8 @@ while true do
       current_step = current_step + step_modifier
     end
   end
+
+  client:send("OK\n");
 
   client:close()
 end
