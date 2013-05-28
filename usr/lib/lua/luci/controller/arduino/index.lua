@@ -91,7 +91,7 @@ function index()
     end
 
     if basic_auth and basic_auth ~= "" then
-      http_error(403, luci.sys.user.getpasswd(user))
+      http_error(403)
     else
       luci.template.render("arduino/set_password", { duser = default, fuser = user })
     end
