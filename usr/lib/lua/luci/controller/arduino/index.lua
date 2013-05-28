@@ -106,30 +106,10 @@ function index()
     return page
   end
 
-  local fp
-  luci.http.setfilehandler(function(meta, chunk, eof)
-    if not luci.http.getenv("PATH_INFO"):match("/arduino/upload") then
-      return
-    end
-    if not fp and meta and meta.name == "sketch" then
-      local uploaded_filename = "/tmp/" .. luci.http.formvalue("sketch")
-      luci.http.getenv()["UPLOADED_FILENAME"] = uploaded_filename
-      fp = io.open(uploaded_filename, "w")
-    end
-    if fp then
-      if chunk then
-        fp:write(chunk)
-      end
-      if eof then
-        fp:close()
-      end
-    end
-  end)
-
   protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
   protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20).leaf = true
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30).leaf = true
-  protected_entry({ "arduino", "upload" }, call("after_upload"), _("Upload sketch"), 40).leaf = true
+  protected_entry({ "arduino", "flash" }, call("flash_sketch"), _("Flash uploaded sketch"), 40).leaf = true
   protected_entry({ "arduino", "board" }, call("board_send_command"), _("Board send command"), 50).leaf = true
 end
 
@@ -395,38 +375,14 @@ function reset_board()
   end
 end
 
-function after_upload()
-  local uploaded = luci.http.getenv("UPLOADED_FILENAME")
-  local ext = ".hex"
-  if not uploaded or not uploaded:find(ext, #uploaded - #ext + 1) then
-    http_error(500, "Invalid file uploaded")
-    return
-  end
+function flash_sketch()
+  local uploaded = "/tmp/sketch.hex"
 
-  local sketch = {}
-  for line in io.lines(uploaded) do
-    table.insert(sketch, line)
-  end
-
-  for line in io.lines("/etc/arduino/Caterina-Yun.hex") do
-    table.insert(sketch, line)
-  end
-
-  final_sketch = io.open(uploaded, "w+")
-  if not final_sketch then
+  local fd = io.open(uploaded)
+  if not fd then
     http_error(500, "Unable to open file for writing")
     return
   end
-
-  for idx, line in ipairs(sketch) do
-    line = string.gsub(line, "\n", "")
-    line = string.gsub(line, "\r", "")
-    final_sketch:write(line)
-    final_sketch:write("\n")
-  end
-
-  final_sketch:flush()
-  final_sketch:close()
 
   luci.util.exec("kill-bridge")
   local command = "run-avrdude " .. uploaded
