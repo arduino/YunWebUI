@@ -56,3 +56,12 @@ function goto(href) {
     document.location = href;
     return false;
 }
+
+function onchange_security(select) {
+    var wifi_password_asterisk = document.getElementById("req_3");
+    if (select.value == "none") {
+        wifi_password_asterisk.setAttribute("style", "visibility: hidden");
+    } else {
+        wifi_password_asterisk.removeAttribute("style");
+    }
+}

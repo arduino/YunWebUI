@@ -75,7 +75,7 @@ http.prepare_content("text/html; charset=utf-8")
       </label>
 
       <div class="input_container">
-	<select id="wifi.encryption" name="wifi.encryption" tabindex="3">
+	<select id="wifi.encryption" name="wifi.encryption" onchange="javascript:onchange_security(this);" tabindex="3">
           <% for k, encryption in ipairs(encryptions) do %>
 	  <option value="<%= encryption["code"] %>"
 	  <% if wifi["encryption"] == encryption["code"] then %>
@@ -89,7 +89,10 @@ http.prepare_content("text/html; charset=utf-8")
 
     <li>
       <label class="desc" for="wifi.password">
-	Password <span id="req_3" class="req">*</span>
+	Password <span id="req_3" class="req"
+        <% if wifi["encryption"] == "none" then %>
+        style="visibility:hidden;"
+        <% end %>>*</span>
       </label>
 
       <div class="input_container">
