@@ -118,24 +118,30 @@ end
 
 function homepage()
   local wa = require("luci.tools.webadmin")
-  local network = luci.model.uci.cursor_state():get_all("network")
+  local network = luci.util.exec("cat /proc/net/dev")
+  network = string.split(network, "\n")
+  local ifnames = {}
+  for i = 3, #network - 1, 1 do
+    local ifname = luci.util.trim(string.split(network[i], ":")[1])
+    if ifname ~= "lo" then
+      table.insert(ifnames, ifname)
+    end
+  end
+
   local ifaces = {}
+  for i, ifname in ipairs(ifnames) do
+    local ix = luci.util.exec("LANG=en ifconfig " .. ifname)
+    local mac = ix and ix:match("HWaddr ([^%s]+)") or "-"
 
-  for k, v in pairs(network) do
-    if v[".type"] == "interface" and k ~= "loopback" then
-      local ix = luci.util.exec("LANG=en ifconfig " .. v["ifname"])
-      local mac = ix and ix:match("HWaddr ([^%s]+)") or "-"
+    ifaces[ifname] = {
+      mac = mac:upper()
+    }
 
-      ifaces[v["ifname"]] = {
-        mac = mac:upper()
-      }
-
-      local address = ix and ix:match("inet addr:([^%s]+)")
-      local netmask = ix and ix:match("Mask:([^%s]+)")
-      if address then
-        ifaces[v["ifname"]]["address"] = address
-        ifaces[v["ifname"]]["netmask"] = netmask
-      end
+    local address = ix and ix:match("inet addr:([^%s]+)")
+    local netmask = ix and ix:match("Mask:([^%s]+)")
+    if address then
+      ifaces[ifname]["address"] = address
+      ifaces[ifname]["netmask"] = netmask
     end
   end
 
