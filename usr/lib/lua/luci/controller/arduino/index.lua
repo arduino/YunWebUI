@@ -118,14 +118,12 @@ end
 
 function homepage()
   local wa = require("luci.tools.webadmin")
-  local network = luci.util.exec("cat /proc/net/dev")
+  local network = luci.util.exec("LANG=en ifconfig | grep HWaddr")
   network = string.split(network, "\n")
   local ifnames = {}
-  for i = 3, #network - 1, 1 do
-    local ifname = luci.util.trim(string.split(network[i], ":")[1])
-    if ifname ~= "lo" then
-      table.insert(ifnames, ifname)
-    end
+  for i, v in ipairs(network) do
+    local ifname = luci.util.trim(string.split(network[i], " ")[1])
+    table.insert(ifnames, ifname)
   end
 
   local ifaces = {}
@@ -353,8 +351,6 @@ function config_post()
     uci:set("wireless", "radio0", "country", param("wifi.country"))
   end
 
-  uci:delete("network", "lan", "ifname")
-  uci:delete("network", "lan", "type")
   uci:delete("network", "lan", "ipaddr")
   uci:delete("network", "lan", "netmask")
 
