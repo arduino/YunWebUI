@@ -36,7 +36,7 @@ local function check_password(encrypted_pass)
   local uci = require("luci.model.uci")
   local config = uci.cursor()
 
-  stored_encrypted_pass = config:get_first("arduino", "arduino", "password")
+  local stored_encrypted_pass = config:get_first("arduino", "arduino", "password")
   return encrypted_pass == stored_encrypted_pass
 end
 
@@ -102,7 +102,7 @@ local function read_sketch(accumulator)
     table.insert(sketch, line)
   end
 
-  final_sketch = io.open("/tmp/sketch.hex", "w+")
+  local final_sketch = io.open("/tmp/sketch.hex", "w+")
   if not final_sketch then
     return accumulator, 0, true
   end
@@ -139,6 +139,8 @@ while true do
   local steps = { read_password, read_sketch, close_client }
   local current_step = 1
   local accumulator = {}
+  local step_modifier
+  local terminate
 
   while true do
     local line, err = client:receive("*l")

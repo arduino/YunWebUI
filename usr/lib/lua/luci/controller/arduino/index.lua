@@ -15,7 +15,7 @@ local function lines_from(file)
 end
 
 local function rfind(s, c)
-  last = 1
+  local last = 1
   while string.find(s, c, last, true) do
     last = string.find(s, c, last, true) + 1
   end
@@ -23,7 +23,7 @@ local function rfind(s, c)
 end
 
 local function param(name)
-  val = luci.http.formvalue(name)
+  local val = luci.http.formvalue(name)
   if val then
     val = luci.util.trim(val)
     if string.len(val) > 0 then
@@ -35,7 +35,7 @@ local function param(name)
 end
 
 local function check_update_file()
-  update_file = luci.util.exec("update-file-available")
+  local update_file = luci.util.exec("update-file-available")
   if update_file and string.len(update_file) > 0 then
     return update_file
   end
@@ -123,15 +123,15 @@ function homepage()
 
   for k, v in pairs(network) do
     if v[".type"] == "interface" and k ~= "loopback" then
-      ix = luci.util.exec("LANG=en ifconfig " .. v["ifname"])
-      mac = ix and ix:match("HWaddr ([^%s]+)") or "-"
+      local ix = luci.util.exec("LANG=en ifconfig " .. v["ifname"])
+      local mac = ix and ix:match("HWaddr ([^%s]+)") or "-"
 
       ifaces[v["ifname"]] = {
         mac = mac:upper()
       }
 
-      address = ix and ix:match("inet addr:([^%s]+)")
-      netmask = ix and ix:match("Mask:([^%s]+)")
+      local address = ix and ix:match("inet addr:([^%s]+)")
+      local netmask = ix and ix:match("Mask:([^%s]+)")
       if address then
         ifaces[v["ifname"]]["address"] = address
         ifaces[v["ifname"]]["netmask"] = netmask
@@ -156,7 +156,7 @@ function homepage()
     ctx["last_log"] = lines_from("/last_dmesg_with_wifi_errors.log")
   end
 
-  update_file = check_update_file()
+  local update_file = check_update_file()
   if update_file then
     update_file = string.sub(update_file, rfind(update_file, "/"))
     ctx["update_file"] = update_file
@@ -165,20 +165,12 @@ function homepage()
   luci.template.render("arduino/homepage", ctx)
 end
 
-function config()
-  if luci.http.formvalue("wifi.country") then
-    config_post()
-  else
-    config_get()
-  end
-end
-
 function config_get()
   local uci = luci.model.uci.cursor()
   uci:load("system")
   uci:load("wireless")
 
-  countries = {}
+  local countries = {}
   countries[1] = { code = "AL", name = "ALBANIA" }
   countries[2] = { code = "DZ", name = "ALGERIA" }
   countries[3] = { code = "AD", name = "ANDORRA" }
@@ -298,13 +290,13 @@ function config_get()
   countries[117] = { code = "YE", name = "YEMEN" }
   countries[118] = { code = "ZW", name = "ZIMBABWE" }
 
-  encryptions = {}
+  local encryptions = {}
   encryptions[1] = { code = "none", name = "None" }
   encryptions[2] = { code = "wep", name = "WEP" }
   encryptions[3] = { code = "psk", name = "WPA" }
   encryptions[4] = { code = "psk2", name = "WPA2" }
 
-  ctx = {
+  local ctx = {
     hostname = get_first(uci, "system", "system", "hostname"),
     wifi = {
       ssid = get_first(uci, "wireless", "wifi-iface", "ssid"),
@@ -372,8 +364,16 @@ function config_post()
   luci.util.exec("reboot")
 end
 
+function config()
+  if luci.http.formvalue("wifi.country") then
+    config_post()
+  else
+    config_get()
+  end
+end
+
 function reset_board()
-  update_file = check_update_file()
+  local update_file = check_update_file()
   if param("button") and update_file then
     luci.util.exec("blink-start 50")
     luci.util.exec("run-sysupgrade " .. update_file)
@@ -447,7 +447,7 @@ function board_send_command()
   sock:setsockopt("socket", "sndtimeo", 5)
   sock:setsockopt("socket", "rcvtimeo", 5)
 
-  json = require("luci.json")
+  local json = require("luci.json")
 
   sock:writeall(json.encode(bridge_request) .. "\n")
 
@@ -463,7 +463,7 @@ function board_send_command()
       return
     end
 
-    json_response = json.decode(response_text)
+    local json_response = json.decode(response_text)
     if json_response then
       luci.http.prepare_content("application/json")
       luci.http.status(200)
