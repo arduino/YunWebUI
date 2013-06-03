@@ -1,9 +1,12 @@
+"use strict";
+
 function formCheck(form) {
     var wifi_ssid = form["wifi.ssid"];
     var wifi_encryption = form["wifi.encryption"];
     var wifi_password = form["wifi.password"];
     var hostname = form["hostname"];
     var password = form["password"];
+    var errors;
 
     var errContainer = document.getElementById("error_container");
 
@@ -64,4 +67,23 @@ function onchange_security(select) {
     } else {
         wifi_password_asterisk.removeAttribute("style");
     }
+}
+
+var pu, key_id, public_key;
+if (typeof(getPublicKey) === "function") {
+    pu = new getPublicKey(pub_key);
+    key_id = pu.keyid;
+    public_key = pu.pkey.replace(/\n/g, "");
+}
+
+function send_post(url, form, real_form_id) {
+    var json = {};
+    for (var i = 3; i < arguments.length; i++) {
+        json[arguments[i]] = form[arguments[i]].value;
+    }
+    var pgp_message = doEncrypt(key_id, 0, public_key, JSON.stringify(json));
+    var real_form = document.getElementById(real_form_id);
+    real_form.pgp_message.value = pgp_message;
+    real_form.submit();
+    return false;
 }

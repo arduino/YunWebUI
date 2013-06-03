@@ -54,7 +54,7 @@ local function set_first(cursor, config, type, option, value)
   end)
 end
 
-local function http_error(code, text)
+function http_error(code, text)
   luci.http.prepare_content("text/plain")
   luci.http.status(code)
   if text then
@@ -62,16 +62,49 @@ local function http_error(code, text)
   end
 end
 
+function read_gpg_pub_key()
+  local gpg_pub_key_ascii_file = io.open("/etc/arduino/arduino_gpg.asc")
+  local gpg_pub_key_ascii = ""
+  for line in gpg_pub_key_ascii_file:lines() do
+    gpg_pub_key_ascii = gpg_pub_key_ascii .. line .. "\\n"
+  end
+  return gpg_pub_key_ascii
+end
+
+dec_params = ""
+
+function decrypt_pgp_message()
+  local pgp_message = luci.http.formvalue("pgp_message")
+  if pgp_message then
+    if #dec_params > 0 then
+      return dec_params
+    end
+
+    local pgp_enc_file = io.open("/tmp/pgp_message.txt", "w+")
+    pgp_enc_file:write(pgp_message)
+    pgp_enc_file:close()
+
+    local json_input = luci.util.exec("cat /tmp/pgp_message.txt | gpg --no-default-keyring --secret-keyring /etc/arduino/arduino_gpg.sec --keyring /etc/arduino/arduino_gpg.pub --decrypt")
+    local json = require("luci.json")
+    dec_params = json.decode(json_input)
+    return dec_params
+  end
+  return nil
+end
+
 function index()
   function luci.dispatcher.authenticator.arduinoauth(validator, accs, default)
-    local user = luci.http.formvalue("username")
-    local pass = luci.http.formvalue("password")
+    require("luci.controller.arduino.index")
+
+    local dec_params = luci.controller.arduino.index.decrypt_pgp_message()
+    local user = luci.http.formvalue("username") or (dec_params and dec_params["username"])
+    local pass = luci.http.formvalue("password") or (dec_params and dec_params["password"])
+    local basic_auth = luci.http.getenv("HTTP_AUTHORIZATION")
 
     if user and validator(user, pass) then
       return user
     end
 
-    local basic_auth = luci.http.getenv("HTTP_AUTHORIZATION")
     if basic_auth and basic_auth ~= "" then
       local decoded_basic_auth = nixio.bin.b64decode(string.sub(basic_auth, 7))
       user = string.sub(decoded_basic_auth, 0, string.find(decoded_basic_auth, ":") - 1)
@@ -92,10 +125,10 @@ function index()
     end
 
     if basic_auth and basic_auth ~= "" then
-      luci.http.prepare_content("text/plain")
-      luci.http.status(403)
+      luci.controller.arduino.index.http_error(403)
     else
-      luci.template.render("arduino/set_password", { duser = default, fuser = user })
+      local gpg_pub_key_ascii = luci.controller.arduino.index.read_gpg_pub_key()
+      luci.template.render("arduino/set_password", { duser = default, fuser = user, pub_key = gpg_pub_key_ascii })
     end
 
     return false
@@ -109,11 +142,17 @@ function index()
   end
 
   protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
+  protected_entry({ "arduino", "set_password" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
   protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20).leaf = true
+  protected_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20).leaf = true
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30).leaf = true
   protected_entry({ "arduino", "flash" }, call("flash_sketch"), _("Flash uploaded sketch"), 40).leaf = true
   protected_entry({ "arduino", "board" }, call("board_send_command"), _("Board send command"), 50).leaf = true
   protected_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60).leaf = true
+end
+
+function go_to_homepage()
+  luci.http.redirect(luci.dispatcher.build_url("arduino"))
 end
 
 function homepage()
@@ -123,7 +162,9 @@ function homepage()
   local ifnames = {}
   for i, v in ipairs(network) do
     local ifname = luci.util.trim(string.split(network[i], " ")[1])
-    table.insert(ifnames, ifname)
+    if ifname and ifname ~= "" then
+      table.insert(ifnames, ifname)
+    end
   end
 
   local ifaces = {}
@@ -309,46 +350,49 @@ function config_get()
       country = uci:get("wireless", "radio0", "country")
     },
     countries = countries,
-    encryptions = encryptions
+    encryptions = encryptions,
+    pub_key = luci.controller.arduino.index.read_gpg_pub_key()
   }
 
   luci.template.render("arduino/config", ctx)
 end
 
 function config_post()
+  local params = decrypt_pgp_message()
+
   local uci = luci.model.uci.cursor()
   uci:load("system")
   uci:load("wireless")
   uci:load("network")
   uci:load("arduino")
 
-  if param("password") then
-    local password = param("password")
+  if params["password"] then
+    local password = params["password"]
     luci.sys.user.setpasswd("root", password)
 
     local sha256 = require("luci.sha256")
     set_first(uci, "arduino", "arduino", "password", sha256.sha256(password))
   end
 
-  if param("hostname") then
-    local hostname = string.gsub(param("hostname"), " ", "_")
+  if params["hostname"] then
+    local hostname = string.gsub(params["hostname"], " ", "_")
     set_first(uci, "system", "system", "hostname", hostname)
   end
 
   uci:set("wireless", "radio0", "channel", "auto")
   set_first(uci, "wireless", "wifi-iface", "mode", "sta")
 
-  if param("wifi.ssid") then
-    set_first(uci, "wireless", "wifi-iface", "ssid", param("wifi.ssid"))
+  if params["wifi.ssid"] then
+    set_first(uci, "wireless", "wifi-iface", "ssid", params["wifi.ssid"])
   end
-  if param("wifi.encryption") then
-    set_first(uci, "wireless", "wifi-iface", "encryption", param("wifi.encryption"))
+  if params["wifi.encryption"] then
+    set_first(uci, "wireless", "wifi-iface", "encryption", params["wifi.encryption"])
   end
-  if param("wifi.password") then
-    set_first(uci, "wireless", "wifi-iface", "key", param("wifi.password"))
+  if params["wifi.password"] then
+    set_first(uci, "wireless", "wifi-iface", "key", params["wifi.password"])
   end
-  if param("wifi.country") then
-    uci:set("wireless", "radio0", "country", param("wifi.country"))
+  if params["wifi.country"] then
+    uci:set("wireless", "radio0", "country", params["wifi.country"])
   end
 
   uci:delete("network", "lan", "ipaddr")
@@ -367,7 +411,7 @@ function config_post()
 end
 
 function config()
-  if luci.http.formvalue("wifi.country") then
+  if luci.http.getenv("REQUEST_METHOD") == "POST" then
     config_post()
   else
     config_get()

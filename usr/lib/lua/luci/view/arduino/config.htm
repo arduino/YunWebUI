@@ -8,7 +8,17 @@ http.prepare_content("text/html; charset=utf-8")
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
   <link rel="stylesheet" type="text/css" href="<%= resource %>/arduino/style.css" />
-  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/js.js" ></script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/aes-enc.js"></script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/base64.js"></script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/mouse.js"></script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/PGencode.js"></script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/PGpubkey.js"></script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/rsa.js"></script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/sha1.js"></script>
+  <script language="javascript">
+    var pub_key = "<%= pub_key %>";
+  </script>
+  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/js.js"></script>
   <title>Y&uacute;n &#20113;</title>
 </head>
 <body>
@@ -24,7 +34,7 @@ http.prepare_content("text/html; charset=utf-8")
   </div>
   <div id="content">
     <div class="wrapper">
-<form id="form1" name="form1" method="post" action="<%= pcdata(controller .. '/arduino/config') %>" onsubmit="javascript:return formCheck(this);">
+<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.country', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'password');" action="#">
   <div id="error_container" class="hidden">
     <p>An error has occurred.</p>
   </div>
@@ -135,6 +145,9 @@ http.prepare_content("text/html; charset=utf-8")
 
   </ul>
 </form>
+      <form id="real_form" name="real_form" method="post" action="<%=pcdata(controller .. "/arduino/config")%>">
+        <input type="hidden" name="pgp_message" value=""/>
+      </form>
     </div>
   </div>
   <!-- #content -->
