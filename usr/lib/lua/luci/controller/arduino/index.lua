@@ -167,13 +167,19 @@ function homepage()
     end
   end
 
+  local ifaces_pretty_names = {
+    wlan0 = "WiFi",
+    eth1 = "Wired Ethernet"
+  }
+
   local ifaces = {}
   for i, ifname in ipairs(ifnames) do
     local ix = luci.util.exec("LANG=en ifconfig " .. ifname)
     local mac = ix and ix:match("HWaddr ([^%s]+)") or "-"
 
     ifaces[ifname] = {
-      mac = mac:upper()
+      mac = mac:upper(),
+      pretty_name = ifaces_pretty_names[ifname]
     }
 
     local address = ix and ix:match("inet addr:([^%s]+)")

@@ -87,3 +87,9 @@ function send_post(url, form, real_form_id) {
     real_form.submit();
     return false;
 }
+
+document.body.onload = function() {
+    if (document.getElementById("username")) {
+        document.getElementById("password").focus();
+    }
+};

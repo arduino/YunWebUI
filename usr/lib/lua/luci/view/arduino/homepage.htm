@@ -8,7 +8,6 @@ http.prepare_content("text/html; charset=utf-8")
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
   <link rel="stylesheet" type="text/css" href="<%= resource %>/arduino/style.ugly.css" />
-  <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.ugly.js"></script>
   <title>Y&uacute;n &#20113;</title>
 </head>
 <body>
@@ -26,7 +25,13 @@ Welcome to <%= hostname %>, your Arduino Y&uacute;n &#20113;<br/><br/>
 
 This is my current network connection:<br/>
 <% for name, data in pairs(ifaces) do %>
-Name: <%= name %>
+<strong>
+<% if data["pretty_name"] then %>
+<%= data["pretty_name"] %> (<%= name %>)
+<% else %>
+Interface <%= name %>
+<% end %>
+</strong>
 <% if data["address"] then %>
 <br/>
 Address: <%= data["address"] %>
@@ -84,5 +89,6 @@ There's been a problem last time I tried configuring wifi. Check the following l
   <br class="clear"/>
 </div>
 <!-- #container -->
+<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.ugly.js"></script>
 </body>
 </html>
