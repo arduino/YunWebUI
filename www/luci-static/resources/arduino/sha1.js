@@ -1,5 +1,3 @@
-"use strict";
-
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
  * in FIPS PUB 180-1
@@ -8,6 +6,8 @@
  * Distributed under the BSD License
  * See http://pajhome.org.uk/crypt/md5 for details.
  */
+
+"use strict";
 
 /*
  * Configurable variables. You may need to tweak these to be compatible with

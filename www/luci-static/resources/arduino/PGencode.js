@@ -1,5 +1,3 @@
-"use strict";
-
 /* OpenPGP encryption using RSA/AES
  * Copyright 2005-2006 Herbert Hanewinkel, www.haneWIN.de
  * version 2.0, check www.haneWIN.de for the latest version
@@ -30,6 +28,8 @@
  * - Only a few bits from mouse mouvement event coordinates are unpredictable,
  *   if the same buttons are clicked on the screen.
  */
+
+"use strict";
 
 var rnArray = new Array(256);
 var rnNext = 0;

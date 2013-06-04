@@ -1,5 +1,3 @@
-"use strict";
-
 /* Collect entropy from mouse motion and key press events
  * Note that this is coded to work with either DOM2 or Internet Explorer
  * style events.
@@ -11,6 +9,8 @@
  * mouse motion event code originally from John Walker
  * key press timing code thanks to Nigel Johnstone
  */
+
+"use strict";
 
 var oldKeyHandler;    // For saving and restoring key press handler in IE4
 var keyRead = 0;

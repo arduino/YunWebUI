@@ -1,5 +1,3 @@
-"use strict";
-
 /* OpenPGP radix-64/base64 string encoding/decoding
  * Copyright 2005 Herbert Hanewinkel, www.haneWIN.de
  * version 1.0, check www.haneWIN.de for the latest version
@@ -12,6 +10,8 @@
  * include the above copyright notice in the documentation and/or other materials
  * provided with the application or distribution.
  */
+
+"use strict";
 
 var b64s='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 

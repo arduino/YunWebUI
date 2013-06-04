@@ -1,5 +1,3 @@
-"use strict";
-
 /* Rijndael (AES) Encryption
  * Copyright 2005 Herbert Hanewinkel, www.haneWIN.de
  * version 1.1, check www.haneWIN.de for the latest version
@@ -12,6 +10,8 @@
  * include the above copyright notice in the documentation and/or other
  * materials provided with the application or distribution.
  */
+
+"use strict";
 
 // The round constants used in subkey expansion
 var Rcon = [ 

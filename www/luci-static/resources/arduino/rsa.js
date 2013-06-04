@@ -1,5 +1,3 @@
-"use strict";
-
 /* RSA public key encryption/decryption
  * The following functions are (c) 2000 by John M Hanna and are
  * released under the terms of the Gnu Public License.
@@ -10,6 +8,8 @@
  * Modifications and GnuPG multi precision integer (mpi) conversion added
  * 2004 by Herbert Hanewinkel, www.haneWIN.de
  */
+
+"use strict";
 
 // --- Arbitrary Precision Math ---
 // badd(a,b), bsub(a,b), bsqr(a), bmul(a,b)
