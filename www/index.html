@@ -1,16 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<body style="background-color: #00979c;">
-<a style="color: white; text-decoration: none" href="#">Wait a moment...</a>
-<script language="JavaScript">
-  if (window.location.protocol === "http:") {
-    var newUrl = "https://" + window.location.hostname;
-    document.getElementsByTagName("a")[0].href = newUrl;
-    window.location = newUrl;
-  } else {
-    window.location = "/cgi-bin/luci/arduino";
-  }
-</script>
+<html>
+<head>
+  <meta http-equiv="refresh" content="0; url=/cgi-bin/luci/arduino/">
+  <style>
+    body {
+      background: #00979c;
+      color: #222;
+      font: 1em "Lucida Grande", Lucida, Verdana, sans-serif;
+    }
+
+    a,
+    a:link,
+    a:visited,
+    a:active,
+    a:hover {
+      color: #222;
+    }
+
+  </style>
+</head>
+<body>
+<a href="/cgi-bin/luci/arduino/">Wait a moment or click here...</a>
 </body>
 </html>
