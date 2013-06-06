@@ -1,11 +1,6 @@
 module("uploader.uploader", package.seeall)
 
-local socket = require("socket")
-local io = require("io")
-local server = assert(socket.bind("*", 9876))
-
 --[[
---TODO comment out
 local function dump(o)
   if type(o) == 'table' then
     local s = '{ '
@@ -26,6 +21,14 @@ function table.copy(t)
     t2[k] = v
   end
   return t2
+end
+
+local function get_cert_and_key()
+  local uci = require("luci.model.uci").cursor()
+  uci.load("uhttpd")
+  local cert = uci.get("uhttpd", "main", "cert")
+  local key = uci.get("uhttpd", "main", "key")
+  return cert, key
 end
 
 local function starts_with(str, substr, from_idx)
@@ -98,6 +101,7 @@ local function read_sketch(accumulator)
 
   table.remove(sketch)
 
+  local io = require("io")
   for line in io.lines("/etc/arduino/Caterina-Yun.hex") do
     table.insert(sketch, line)
   end
@@ -132,32 +136,88 @@ local function close_client(accumulator)
   return accumulator, 0, true
 end
 
-while true do
-  local client = server:accept()
-  client:settimeout(10)
+local nixio = require("nixio")
+local tls_context = nixio.tls("server")
+local cert, key = get_cert_and_key()
+assert(tls_context:set_cert(cert, "asn1"))
+assert(tls_context:set_key(key, "asn1"))
+tls_context:set_verify("none")
+assert(tls_context:set_ciphers("ALL"))
 
-  local steps = { read_password, read_sketch, close_client }
-  local current_step = 1
-  local accumulator = {}
-  local step_modifier
-  local terminate
+local server = nixio.bind("0.0.0.0", 9876)
+assert(server:listen(3))
 
-  while true do
-    local line, err = client:receive("*l")
-    if err then
-      break
-    end
-    if line ~= "" then
-      table.insert(accumulator, line)
-      accumulator, step_modifier, terminate = steps[current_step](accumulator)
-      if terminate then
-        break
-      end
-      current_step = current_step + step_modifier
+local buffer
+function receive_line(socket)
+  local function slice_of_buffer(index)
+    local ret = string.sub(buffer, 1, index - 1)
+    buffer = string.sub(buffer, index + 1)
+    return ret
+  end
+
+  if buffer then
+    local index = string.find(buffer, "\n")
+    if index then
+      return slice_of_buffer(index)
     end
   end
 
-  client:send("OK\n");
+  local read_bytes = socket:read(4096)
+  if read_bytes then
+    buffer = buffer or ""
+    buffer = buffer .. read_bytes
+    buffer = string.gsub(string.gsub(buffer, "\r", "\n"), "\n\n", "\n")
+  end
+  local index = string.find(buffer, "\n")
+  if not index then
+    if buffer then
+      return ""
+    else
+      return nil
+    end
+  end
+  return slice_of_buffer(index)
+end
 
-  client:close()
+function loop()
+  while true do
+    local client = server:accept()
+    client:setsockopt("socket", "sndtimeo", 10)
+    client:setsockopt("socket", "rcvtimeo", 10)
+    client:setblocking(true)
+    client = tls_context:create(client)
+    if not client then
+      client:close()
+      break
+    end
+
+    local steps = { read_password, read_sketch, close_client }
+    local current_step = 1
+    local accumulator = {}
+    local step_modifier
+    local terminate
+
+    while true do
+      local line = receive_line(client)
+      if line == nil then
+        break
+      end
+      if line ~= "" then
+        table.insert(accumulator, line)
+        accumulator, step_modifier, terminate = steps[current_step](accumulator)
+        if terminate then
+          break
+        end
+        current_step = current_step + step_modifier
+      end
+    end
+
+    client:send("OK\n");
+
+    client:shutdown()
+  end
+end
+
+while true do
+  print(pcall(loop))
 end
