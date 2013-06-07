@@ -332,6 +332,12 @@ end
 function reset_board()
   local update_file = check_update_file()
   if param("button") and update_file then
+    local ix = luci.util.exec("LANG=en ifconfig wlan0 | grep HWaddr")
+    local macaddr = string.gsub(ix:match("HWaddr ([^%s]+)"), ":", "")
+
+    luci.template.render("arduino/board_reset", { name = "Arduino Yun-" .. macaddr })
+
+    update_file = string.sub(update_file, rfind(update_file, "/"))
     luci.util.exec("blink-start 50")
     luci.util.exec("run-sysupgrade " .. update_file)
   end

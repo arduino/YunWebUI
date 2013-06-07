@@ -1,0 +1,33 @@
+<%
+local http = require("luci.http")
+http.prepare_content("text/html")
+-%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+  <link rel="stylesheet" type="text/css" href="<%= resource %>/arduino/style.ugly.css" />
+  <title>Y&uacute;n &#20113;</title>
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    <div class="wrapper">
+      <h1>Y&uacute;n &#20113;</h1>
+
+      <div id="logo"><img src="<%= resource %>/arduino/logo.png" alt="Y&uacute;n &#20113;"/></div>
+    </div>
+  </div>
+  <div id="content">
+    <div class="wrapper">
+      I'm resetting. Please wait until the led stops blinking, then connect your computer to the default WiFi network <%= name %>, and you'll find me there at <a href="http://arduino.local">http://arduino.local</a>.
+    </div>
+  </div>
+  <!-- #content -->
+  <br class="clear"/>
+</div>
+<!-- #container -->
+<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.ugly.js"></script>
+</body>
+</html>
