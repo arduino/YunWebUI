@@ -341,7 +341,7 @@ function config_post()
 
   luci.template.render("arduino/rebooting", { hostname = get_first(uci, "system", "system", "hostname") })
 
-  mluci.util.exec("reboot")
+  luci.util.exec("reboot")
 end
 
 function config()
