@@ -216,146 +216,47 @@ function homepage()
   luci.template.render("arduino/homepage", ctx)
 end
 
+local function csv_to_array(text)
+  local array = {}
+  local line_parts;
+  local lines = string.split(text, "\n")
+  for i, line in ipairs(lines) do
+    line_parts = string.split(line, "\t")
+    table.insert(array, { code = line_parts[1], label = line_parts[2] })
+  end
+  return array
+end
+
 function config_get()
   local uci = luci.model.uci.cursor()
   uci:load("system")
   uci:load("wireless")
 
-  local countries = {}
-  countries[1] = { code = "AL", name = "Albania" }
-  countries[2] = { code = "DZ", name = "Algeria" }
-  countries[3] = { code = "AD", name = "Andorra" }
-  countries[4] = { code = "AR", name = "Argentina" }
-  countries[5] = { code = "AW", name = "Aruba" }
-  countries[6] = { code = "AU", name = "Australia" }
-  countries[7] = { code = "AT", name = "Austria" }
-  countries[8] = { code = "AZ", name = "Azerbaijan" }
-  countries[9] = { code = "BH", name = "Bahrain" }
-  countries[10] = { code = "BD", name = "Bangladesh" }
-  countries[11] = { code = "BB", name = "Barbados" }
-  countries[12] = { code = "BY", name = "Belarus" }
-  countries[13] = { code = "BE", name = "Belgium" }
-  countries[14] = { code = "BZ", name = "Belize" }
-  countries[15] = { code = "BO", name = "Bolivia, Plurinational State of" }
-  countries[16] = { code = "BA", name = "Bosnia and Herzegovina" }
-  countries[17] = { code = "BR", name = "Brazil" }
-  countries[18] = { code = "BN", name = "Brunei Darussalam" }
-  countries[19] = { code = "BG", name = "Bulgaria" }
-  countries[20] = { code = "KH", name = "Cambodia" }
-  countries[21] = { code = "CA", name = "Canada" }
-  countries[22] = { code = "CL", name = "Chile" }
-  countries[23] = { code = "CN", name = "China" }
-  countries[24] = { code = "CO", name = "Colombia" }
-  countries[25] = { code = "CR", name = "Costa Rica" }
-  countries[26] = { code = "HR", name = "Croatia" }
-  countries[27] = { code = "CY", name = "Cyprus" }
-  countries[28] = { code = "CZ", name = "Czech Republic" }
-  countries[29] = { code = "DK", name = "Denmark" }
-  countries[30] = { code = "DO", name = "Dominican Republic" }
-  countries[31] = { code = "EC", name = "Ecuador" }
-  countries[32] = { code = "EG", name = "Egypt" }
-  countries[33] = { code = "SV", name = "El Salvador" }
-  countries[34] = { code = "EE", name = "Estonia" }
-  countries[35] = { code = "FI", name = "Finland" }
-  countries[36] = { code = "FR", name = "France" }
-  countries[37] = { code = "GE", name = "Georgia" }
-  countries[38] = { code = "DE", name = "Germany" }
-  countries[39] = { code = "GR", name = "Greece" }
-  countries[40] = { code = "GL", name = "Greenland" }
-  countries[41] = { code = "GD", name = "Grenada" }
-  countries[42] = { code = "GU", name = "Guam" }
-  countries[43] = { code = "GT", name = "Guatemala" }
-  countries[44] = { code = "HT", name = "Haiti" }
-  countries[45] = { code = "HN", name = "Honduras" }
-  countries[46] = { code = "HK", name = "Hong Kong" }
-  countries[47] = { code = "HU", name = "Hungary" }
-  countries[48] = { code = "IS", name = "Iceland" }
-  countries[49] = { code = "IN", name = "India" }
-  countries[50] = { code = "ID", name = "Indonesia" }
-  countries[51] = { code = "IR", name = "Iran, Islamic Republic of" }
-  countries[52] = { code = "IE", name = "Ireland" }
-  countries[53] = { code = "IL", name = "Israel" }
-  countries[54] = { code = "IT", name = "Italy" }
-  countries[55] = { code = "JM", name = "Jamaica" }
-  countries[56] = { code = "JP", name = "Japan" }
-  countries[57] = { code = "JO", name = "Jordan" }
-  countries[58] = { code = "KZ", name = "Kazakhstan" }
-  countries[59] = { code = "KE", name = "Kenya" }
-  countries[60] = { code = "KP", name = "Korea, Democratic People's Republic of" }
-  countries[61] = { code = "KR", name = "Korea, Republic of" }
-  countries[62] = { code = "KW", name = "Kuwait" }
-  countries[63] = { code = "LV", name = "Latvia" }
-  countries[64] = { code = "LB", name = "Lebanon" }
-  countries[65] = { code = "LI", name = "Liechtenstein" }
-  countries[66] = { code = "LT", name = "Lithuania" }
-  countries[67] = { code = "LU", name = "Luxembourg" }
-  countries[68] = { code = "MO", name = "Macao" }
-  countries[69] = { code = "MK", name = "Macedonia, Republic of" }
-  countries[70] = { code = "MY", name = "Malaysia" }
-  countries[71] = { code = "MT", name = "Malta" }
-  countries[72] = { code = "MX", name = "Mexico" }
-  countries[73] = { code = "MC", name = "Monaco" }
-  countries[74] = { code = "MA", name = "Morocco" }
-  countries[75] = { code = "NP", name = "Nepal" }
-  countries[76] = { code = "NL", name = "Netherlands" }
-  countries[77] = { code = "NZ", name = "New Zealand" }
-  countries[78] = { code = "NO", name = "Norway" }
-  countries[79] = { code = "OM", name = "Oman" }
-  countries[80] = { code = "PK", name = "Pakistan" }
-  countries[81] = { code = "PA", name = "Panama" }
-  countries[82] = { code = "PG", name = "Papua New Guinea" }
-  countries[83] = { code = "PE", name = "Peru" }
-  countries[84] = { code = "PH", name = "Philippines" }
-  countries[85] = { code = "PL", name = "Poland" }
-  countries[86] = { code = "PT", name = "Portugal" }
-  countries[87] = { code = "PR", name = "Puerto Rico" }
-  countries[88] = { code = "QA", name = "Qatar" }
-  countries[89] = { code = "RO", name = "Romania" }
-  countries[90] = { code = "RU", name = "Russian Federation" }
-  countries[91] = { code = "RW", name = "Rwanda" }
-  countries[92] = { code = "BL", name = "Saint Barthélemy" }
-  countries[93] = { code = "SA", name = "Saudi Arabia" }
-  countries[94] = { code = "RS", name = "Serbia" }
-  countries[95] = { code = "SG", name = "Singapore" }
-  countries[96] = { code = "SK", name = "Slovakia" }
-  countries[97] = { code = "SI", name = "Slovenia" }
-  countries[98] = { code = "ZA", name = "South Africa" }
-  countries[99] = { code = "ES", name = "Spain" }
-  countries[100] = { code = "LK", name = "Sri Lanka" }
-  countries[101] = { code = "SE", name = "Sweden" }
-  countries[102] = { code = "CH", name = "Switzerland" }
-  countries[103] = { code = "SY", name = "Syrian Arab Republic" }
-  countries[104] = { code = "TW", name = "Taiwan, Province of China" }
-  countries[105] = { code = "TH", name = "Thailand" }
-  countries[106] = { code = "TT", name = "Trinidad and Tobago" }
-  countries[107] = { code = "TN", name = "Tunisia" }
-  countries[108] = { code = "TR", name = "Turkey" }
-  countries[109] = { code = "UA", name = "Ukraine" }
-  countries[110] = { code = "AE", name = "United Arab Emirates" }
-  countries[111] = { code = "GB", name = "United Kingdom" }
-  countries[112] = { code = "US", name = "United States" }
-  countries[113] = { code = "UY", name = "Uruguay" }
-  countries[114] = { code = "UZ", name = "Uzbekistan" }
-  countries[115] = { code = "VE", name = "Venezuela, Bolivarian Republic of" }
-  countries[116] = { code = "VN", name = "Viet Nam" }
-  countries[117] = { code = "YE", name = "Yemen" }
-  countries[118] = { code = "ZW", name = "Zimbabwe" }
+  local wifi_countries = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi.csv.gz"))
+
+  local timezones = {}
+  local TZ = require("luci.sys.zoneinfo.tzdata").TZ
+  for i, tz in ipairs(TZ) do
+    table.insert(timezones, { code = tz[2], label = tz[1] })
+  end
 
   local encryptions = {}
-  encryptions[1] = { code = "none", name = "None" }
-  encryptions[2] = { code = "wep", name = "WEP" }
-  encryptions[3] = { code = "psk", name = "WPA" }
-  encryptions[4] = { code = "psk2", name = "WPA2" }
+  encryptions[1] = { code = "none", label = "None" }
+  encryptions[2] = { code = "wep", label = "WEP" }
+  encryptions[3] = { code = "psk", label = "WPA" }
+  encryptions[4] = { code = "psk2", label = "WPA2" }
 
   local ctx = {
     hostname = get_first(uci, "system", "system", "hostname"),
+    timezone = get_first(uci, "system", "system", "timezone"),
     wifi = {
       ssid = get_first(uci, "wireless", "wifi-iface", "ssid"),
       encryption = get_first(uci, "wireless", "wifi-iface", "encryption"),
       password = get_first(uci, "wireless", "wifi-iface", "key"),
       country = uci:get("wireless", "radio0", "country")
     },
-    countries = countries,
+    countries = wifi_countries,
+    timezones = timezones,
     encryptions = encryptions,
     pub_key = luci.controller.arduino.index.read_gpg_pub_key()
   }

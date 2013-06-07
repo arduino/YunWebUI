@@ -21,11 +21,84 @@ http.prepare_content("text/html; charset=utf-8")
   </div>
   <div id="content">
     <div class="wrapper">
-<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.country', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'password');" action="#">
+<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.country', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone', 'password');" action="#">
   <div id="error_container" class="hidden">
     <p>An error has occurred.</p>
   </div>
   <ul>
+    <li>
+      <label class="title">
+        Your Y&uacute;n &#20113;
+      </label>
+      <br/>
+    </li>
+
+    <li>
+      <label class="desc" for="hostname">
+        Y&uacute;n &#20113; name <span class="req">*</span>
+      </label>
+
+      <div class="input_container">
+        <input id="hostname" name="hostname" type="text" value="<%= hostname %>" maxlength="255">
+      </div>
+    </li>
+
+    <li>
+      <label class="desc" for="password">
+        Password
+      </label>
+
+      <div class="input_container">
+        <input id="password" name="password" type="password" maxlength="255">
+      </div>
+    </li>
+
+    <li>
+      <label class="desc" for="wifi.country">
+        Country: <span class="req">*</span>
+      </label>
+
+      <div class="input_container">
+        <select id="wifi.country" name="wifi.country">
+          <option value="00"
+          <%if wifi["country"] == "00" then %>
+          selected="selected"
+          <% end %>
+          >Rest of the world</option>
+          <% for k, country in ipairs(countries) do %>
+          <option value="<%= country["code"] %>"
+          <%if wifi["country"] == country["code"] then %>
+          selected="selected"
+          <% end %>
+          ><%= country["label"] %></option>
+          <% end %>
+        </select>
+      </div>
+    </li>
+
+    <li>
+      <label class="desc" for="timezone">
+        Timezone: <span class="req">*</span>
+      </label>
+
+      <div class="input_container">
+        <select id="timezone" name="timezone">
+          <option value="UTC"
+          <%if timezone == "UTC" then %>
+          selected="selected"
+          <% end %>
+          >UTC</option>
+          <% for k, tz in ipairs(timezones) do %>
+          <option value="<%= tz["code"] %>"
+          <%if timezone == tz["code"] then %>
+          selected="selected"
+          <% end %>
+          ><%= tz["label"] %></option>
+          <% end %>
+        </select>
+      </div>
+    </li>
+
     <li>
       <label class="title">
 	WiFi parameters
@@ -34,35 +107,12 @@ http.prepare_content("text/html; charset=utf-8")
     </li>
 
     <li>
-      <label class="desc" for="wifi.country">
-	You live in: <span class="req">*</span>
-      </label>
-
-      <div class="input_container">
-	<select id="wifi.country" name="wifi.country" tabindex="1">
-	  <option value="00"
-	  <%if wifi["country"] == "00" then %>
-	  selected="selected"
-	  <% end %>
-	  >Rest of the world</option>
-	  <% for k, country in ipairs(countries) do %>
-	  <option value="<%= country["code"] %>"
-	  <%if wifi["country"] == country["code"] then %>
-	  selected="selected"
-	  <% end %>
-	  ><%= country["name"] %></option>
-	  <% end %>
-	</select>
-      </div>
-    </li>
-
-    <li>
       <label class="desc" for="wifi.ssid">
-	WiFi network name <span class="req">*</span>
+	WiFi name <span class="req">*</span>
       </label>
 
       <div class="input_container">
-	<input id="wifi.ssid" name="wifi.ssid" type="text" value="<%= wifi["ssid"] %>" maxlength="255" tabindex="2">
+	<input id="wifi.ssid" name="wifi.ssid" type="text" value="<%= wifi["ssid"] %>" maxlength="255">
       </div>
     </li>
 
@@ -72,13 +122,13 @@ http.prepare_content("text/html; charset=utf-8")
       </label>
 
       <div class="input_container">
-	<select id="wifi.encryption" name="wifi.encryption" onchange="javascript:onchange_security(this);" tabindex="3">
+	<select id="wifi.encryption" name="wifi.encryption" onchange="javascript:onchange_security(this);">
           <% for k, encryption in ipairs(encryptions) do %>
 	  <option value="<%= encryption["code"] %>"
 	  <% if wifi["encryption"] == encryption["code"] then %>
 	  selected="selected"
 	  <% end %>
-	  ><%= encryption["name"] %></option>
+	  ><%= encryption["label"] %></option>
 	  <% end %>
 	</select>
       </div>
@@ -93,40 +143,13 @@ http.prepare_content("text/html; charset=utf-8")
       </label>
 
       <div class="input_container">
-	<input id="wifi.password" name="wifi.password" type="password" value="" maxlength="255" tabindex="4">
-      </div>
-    </li>
-
-    <li>
-      <label class="title">
-	Your Y&uacute;n &#20113;
-      </label>
-      <br/>
-    </li>
-
-    <li>
-      <label class="desc" for="hostname">
-	Y&uacute;n &#20113; name <span class="req">*</span>
-      </label>
-
-      <div class="input_container">
-	<input id="hostname" name="hostname" type="text" value="<%= hostname %>" maxlength="255" tabindex="5">
-      </div>
-    </li>
-
-    <li>
-      <label class="desc" for="password">
-	Password
-      </label>
-
-      <div class="input_container">
-	<input id="password" name="password" type="password" maxlength="255" tabindex="6">
+	<input id="wifi.password" name="wifi.password" type="password" value="" maxlength="255">
       </div>
     </li>
 
     <li>
       <div class="input_container">
-	<input class="btTxt submit saveForm" type="submit" value="Configure &amp; Restart" tabindex="6">
+	<input class="btTxt submit saveForm" type="submit" value="Configure &amp; Restart">
       </div>
     </li>
 
