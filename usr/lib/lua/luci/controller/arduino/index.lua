@@ -286,6 +286,10 @@ function config_post()
     set_first(uci, "system", "system", "hostname", hostname)
   end
 
+  if params["timezone"] then
+    set_first(uci, "system", "system", "timezone", params["timezone"])
+  end
+
   uci:set("wireless", "radio0", "channel", "auto")
   set_first(uci, "wireless", "wifi-iface", "mode", "sta")
 
