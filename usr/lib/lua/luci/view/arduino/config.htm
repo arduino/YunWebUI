@@ -21,7 +21,7 @@ http.prepare_content("text/html; charset=utf-8")
   </div>
   <div id="content">
     <div class="wrapper">
-<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.country', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone', 'password');" action="#">
+<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.country', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
   <div id="error_container" class="hidden">
     <p>An error has occurred.</p>
   </div>
@@ -77,20 +77,20 @@ http.prepare_content("text/html; charset=utf-8")
     </li>
 
     <li>
-      <label class="desc" for="timezone">
+      <label class="desc" for="timezone_desc">
         Timezone: <span class="req">*</span>
       </label>
 
       <div class="input_container">
-        <select id="timezone" name="timezone">
+        <select id="timezone_desc" name="timezone_desc">
           <option value="UTC"
-          <%if timezone == "UTC" then %>
+          <%if timezone_desc == "UTC" then %>
           selected="selected"
           <% end %>
           >UTC</option>
           <% for k, tz in ipairs(timezones) do %>
-          <option value="<%= tz["code"] %>"
-          <%if timezone == tz["code"] then %>
+          <option value="<%= tz["label"] %>"
+          <%if timezone_desc == tz["label"] then %>
           selected="selected"
           <% end %>
           ><%= tz["label"] %></option>

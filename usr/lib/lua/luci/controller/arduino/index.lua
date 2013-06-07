@@ -248,12 +248,12 @@ function config_get()
 
   local ctx = {
     hostname = get_first(uci, "system", "system", "hostname"),
-    timezone = get_first(uci, "system", "system", "timezone"),
+    timezone_desc = get_first(uci, "system", "system", "timezone_desc"),
     wifi = {
-      ssid = get_first(uci, "wireless", "wifi-iface", "ssid"),
-      encryption = get_first(uci, "wireless", "wifi-iface", "encryption"),
-      password = get_first(uci, "wireless", "wifi-iface", "key"),
-      country = uci:get("wireless", "radio0", "country")
+      ssid = get_first(uci, "arduino", "wifi-iface", "ssid"),
+      encryption = get_first(uci, "arduino", "wifi-iface", "encryption"),
+      password = get_first(uci, "arduino", "wifi-iface", "key"),
+      country = uci:get("arduino", "radio0", "country")
     },
     countries = wifi_countries,
     timezones = timezones,
@@ -273,7 +273,7 @@ function config_post()
   uci:load("network")
   uci:load("arduino")
 
-  if params["password"] then
+  if params["password"] and params["password"] ~= "" then
     local password = params["password"]
     luci.sys.user.setpasswd("root", password)
 
@@ -286,39 +286,62 @@ function config_post()
     set_first(uci, "system", "system", "hostname", hostname)
   end
 
-  if params["timezone"] then
-    set_first(uci, "system", "system", "timezone", params["timezone"])
+  if params["timezone_desc"] then
+    local function find_timezone(timezone_desc)
+      local TZ = require("luci.sys.zoneinfo.tzdata").TZ
+      for i, tz in ipairs(TZ) do
+        if tz[1] == timezone_desc then
+          return tz[2]
+        end
+      end
+      return nil
+    end
+
+    local timezone = find_timezone(params["timezone_desc"])
+    if timezone then
+      set_first(uci, "system", "system", "timezone", timezone)
+      set_first(uci, "system", "system", "timezone_desc", params["timezone_desc"])
+    end
   end
 
   uci:set("wireless", "radio0", "channel", "auto")
+  uci:set("arduino", "radio0", "channel", "auto")
   set_first(uci, "wireless", "wifi-iface", "mode", "sta")
+  set_first(uci, "arduino", "wifi-iface", "mode", "sta")
 
   if params["wifi.ssid"] then
     set_first(uci, "wireless", "wifi-iface", "ssid", params["wifi.ssid"])
+    set_first(uci, "arduino", "wifi-iface", "ssid", params["wifi.ssid"])
   end
   if params["wifi.encryption"] then
     set_first(uci, "wireless", "wifi-iface", "encryption", params["wifi.encryption"])
+    set_first(uci, "arduino", "wifi-iface", "encryption", params["wifi.encryption"])
   end
   if params["wifi.password"] then
     set_first(uci, "wireless", "wifi-iface", "key", params["wifi.password"])
+    set_first(uci, "arduino", "wifi-iface", "key", params["wifi.password"])
   end
   if params["wifi.country"] then
     uci:set("wireless", "radio0", "country", params["wifi.country"])
+    uci:set("arduino", "radio0", "country", params["wifi.country"])
   end
 
   uci:delete("network", "lan", "ipaddr")
   uci:delete("network", "lan", "netmask")
 
   uci:set("network", "lan", "proto", "dhcp")
+  uci:set("arduino", "lan", "proto", "dhcp")
+
+  set_first(uci, "arduino", "arduino", "wifi_reset_step", "clear")
 
   uci:commit("system")
   uci:commit("wireless")
   uci:commit("network")
   uci:commit("arduino")
 
-  luci.template.render("arduino/rebooting", {})
+  luci.template.render("arduino/rebooting", { hostname = get_first(uci, "system", "system", "hostname") })
 
-  luci.util.exec("reboot")
+  mluci.util.exec("reboot")
 end
 
 function config()
