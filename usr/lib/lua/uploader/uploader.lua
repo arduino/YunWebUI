@@ -35,10 +35,12 @@ local function starts_with(str, substr, from_idx)
   return string.find(str, substr, from_idx) == from_idx
 end
 
-local function check_password(encrypted_pass)
+local function check_password(password)
   local uci = require("luci.model.uci")
   local config = uci.cursor()
 
+  local sha256 = require("luci.sha256")
+  local encrypted_pass = sha256.sha256(password)
   local stored_encrypted_pass = config:get_first("arduino", "arduino", "password")
   return encrypted_pass == stored_encrypted_pass
 end
