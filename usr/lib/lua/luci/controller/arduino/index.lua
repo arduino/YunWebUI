@@ -377,16 +377,49 @@ function ready()
 end
 
 function flash_sketch()
-  local uploaded = "/tmp/sketch.hex"
+  local uploaded_name = "/tmp/sketch.hex"
 
-  local fd = io.open(uploaded)
-  if not fd then
-    http_error(500, "Unable to open file for writing")
+  local uploaded_sketch = io.open(uploaded_name)
+  if not uploaded_sketch then
+    http_error(500, "Unable to open file " .. uploaded_name .. " for reading")
     return
   end
 
+  local sketch = {}
+  for line in uploaded_sketch:lines(uploaded_name) do
+    table.insert(sketch, line)
+  end
+  uploaded_sketch:close()
+
+  --removes last line
+  table.remove(sketch)
+
+  local io = require("io")
+  for line in io.lines("/etc/arduino/Caterina-Yun.hex") do
+    table.insert(sketch, line)
+  end
+
+  local final_sketch = io.open(uploaded_name, "w+")
+  if not final_sketch then
+    http_error(500, "Unable to open file " .. uploaded_name .. " for writing")
+    return
+  end
+
+  for idx, line in ipairs(sketch) do
+    line = string.gsub(line, "\n", "")
+    line = string.gsub(line, "\r", "")
+    line = string.gsub(line, " ", "")
+    if line ~= "" then
+      final_sketch:write(line)
+      final_sketch:write("\n")
+    end
+  end
+
+  final_sketch:flush()
+  final_sketch:close()
+
   luci.util.exec("kill-bridge")
-  local command = "run-avrdude " .. uploaded
+  local command = "run-avrdude " .. uploaded_name
   if param("params") then
     command = command .. " '" .. param("params") .. "'"
   end
