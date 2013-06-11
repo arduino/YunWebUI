@@ -339,7 +339,12 @@ function config_post()
   uci:commit("network")
   uci:commit("arduino")
 
-  luci.template.render("arduino/rebooting", { hostname = get_first(uci, "system", "system", "hostname") })
+  local ctx = {
+    hostname = get_first(uci, "system", "system", "hostname"),
+    ssid = get_first(uci, "wireless", "wifi-iface", "ssid")
+  }
+
+  luci.template.render("arduino/rebooting", ctx)
 
   luci.util.exec("reboot")
 end

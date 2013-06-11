@@ -132,6 +132,23 @@ span.saveForm {
     font-size: smaller;
 }
 
+.progress_bar_container {
+    width: 100%;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    border-radius: 3px;
+}
+
+.progress_bar {
+    background-color: #00979c;
+    width: 0;
+}
+
+.progress_bar_response {
+    visibility: hidden;
+}
+
 @media only screen and (max-width:320px) {
     body {
         background: #f5f5f5;
@@ -249,7 +266,7 @@ span.saveForm {
     input {
         width: 400px;
     }
-    
+
     span.saveForm {
         margin-left: 218px;
     }
