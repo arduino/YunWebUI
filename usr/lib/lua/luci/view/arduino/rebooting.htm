@@ -2,14 +2,39 @@
 local http = require("luci.http")
 http.prepare_content("text/html")
 -%>
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
   <link rel="stylesheet" type="text/css" href="<%= resource %>/arduino/style.ugly.css"/>
   <title>Y&uacute;n &#20113;</title>
+  <script type="text/javascript">
+    var progress_bar_interval;
+
+    function start_progress_bar() {
+      progress_bar_interval = window.setInterval(function() {
+        var progress_bar = document.getElementById("progress_bar");
+        var width = parseInt(progress_bar.style.width);
+        if (isNaN(width)) {
+          width = 0;
+        }
+        if (width < 100) {
+          width += 100 / 60;
+          if (width > 100) {
+            width = 100;
+          }
+          progress_bar.style.width = width + "%";
+        }
+        if (width >= 100) {
+          window.clearInterval(progress_bar_interval);
+          document.getElementById("progress_bar_response").style.visibility = "visible";
+        }
+      }, 1000);
+    }
+  </script>
 </head>
-<body>
+<body onload="javascript:start_progress_bar();">
 <div id="container">
   <div id="header">
     <div class="wrapper">
@@ -31,11 +56,11 @@ http.prepare_content("text/html")
         <div id="progress_bar" class="progress_bar">&nbsp;</div>
       </div>
       <br/>
+
       <div id="progress_bar_response" class="progress_bar_response">Restarted! You'll find me <a href="http://<%= hostname %>.local">here</a>.
       </div>
     </div>
   </div>
 </div>
-<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.ugly.js"></script>
 </body>
 </html>

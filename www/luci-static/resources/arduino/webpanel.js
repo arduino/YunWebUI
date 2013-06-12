@@ -88,35 +88,8 @@ function send_post(url, form, real_form_id) {
     return false;
 }
 
-var progress_bar_interval;
-
-function start_progress_bar() {
-    progress_bar_interval = window.setInterval(function() {
-        var progress_bar = document.getElementById("progress_bar");
-        var width = parseInt(progress_bar.style.width);
-        if (isNaN(width)) {
-            width = 0;
-        }
-        if (width < 100) {
-            width += 100 / 60;
-            if (width > 100) {
-                width = 100;
-            }
-            progress_bar.style.width = width + "%";
-        }
-        if (width >= 100) {
-            window.clearInterval(progress_bar_interval);
-            document.getElementById("progress_bar_response").style.visibility = "visible";
-        }
-    }, 1000);
-}
-
-
 document.body.onload = function() {
     if (document.getElementById("username")) {
         document.getElementById("password").focus();
-    }
-    if (document.getElementById("progress_bar")) {
-        start_progress_bar();
     }
 };
