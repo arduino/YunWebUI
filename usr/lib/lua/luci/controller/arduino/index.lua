@@ -7,7 +7,7 @@ local function file_exists(file)
 end
 
 local function lines_from(file)
-  lines = {}
+  local lines = {}
   for line in io.lines(file) do
     lines[#lines + 1] = line
   end
