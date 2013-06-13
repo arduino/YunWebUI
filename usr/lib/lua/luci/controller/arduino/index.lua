@@ -146,7 +146,6 @@ function index()
   protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20).leaf = true
   protected_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20).leaf = true
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30).leaf = true
-  protected_entry({ "arduino", "flash" }, call("flash_sketch"), _("Flash uploaded sketch"), 40).leaf = true
   protected_entry({ "arduino", "board" }, call("board_send_command"), _("Board send command"), 50).leaf = true
   protected_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60).leaf = true
 end
@@ -374,59 +373,6 @@ end
 function ready()
   luci.http.status(200)
   return
-end
-
-function flash_sketch()
-  local uploaded_name = "/tmp/sketch.hex"
-
-  local uploaded_sketch = io.open(uploaded_name)
-  if not uploaded_sketch then
-    http_error(500, "Unable to open file " .. uploaded_name .. " for reading")
-    return
-  end
-
-  local sketch = {}
-  for line in uploaded_sketch:lines(uploaded_name) do
-    table.insert(sketch, line)
-  end
-  uploaded_sketch:close()
-
-  --removes last line
-  table.remove(sketch)
-
-  local io = require("io")
-  for line in io.lines("/etc/arduino/Caterina-Yun.hex") do
-    table.insert(sketch, line)
-  end
-
-  local final_sketch = io.open(uploaded_name, "w+")
-  if not final_sketch then
-    http_error(500, "Unable to open file " .. uploaded_name .. " for writing")
-    return
-  end
-
-  for idx, line in ipairs(sketch) do
-    line = string.gsub(line, "\n", "")
-    line = string.gsub(line, "\r", "")
-    line = string.gsub(line, " ", "")
-    if line ~= "" then
-      final_sketch:write(line)
-      final_sketch:write("\n")
-    end
-  end
-
-  final_sketch:flush()
-  final_sketch:close()
-
-  luci.util.exec("kill-bridge")
-  local command = "run-avrdude " .. uploaded_name
-  if param("params") then
-    command = command .. " '" .. param("params") .. "'"
-  end
-
-  local output = luci.util.exec(command)
-  luci.http.prepare_content("text/plain")
-  luci.http.write(output)
 end
 
 function board_send_command()
