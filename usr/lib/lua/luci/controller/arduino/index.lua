@@ -34,6 +34,10 @@ local function param(name)
   return nil
 end
 
+local function not_empty(value)
+  return value and value ~= ""
+end
+
 local function check_update_file()
   local update_file = luci.util.exec("update-file-available")
   if update_file and string.len(update_file) > 0 then
@@ -146,8 +150,15 @@ function index()
   protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20).leaf = true
   protected_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20).leaf = true
   protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30).leaf = true
-  protected_entry({ "arduino", "board" }, call("board_send_command"), _("Board send command"), 50).leaf = true
   protected_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60).leaf = true
+
+  protected_entry({ "arduino", "digital" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  protected_entry({ "arduino", "analog" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  protected_entry({ "arduino", "mode" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  protected_entry({ "arduino", "raw" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  protected_entry({ "arduino", "get" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  protected_entry({ "arduino", "put" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  protected_entry({ "arduino", "delete" }, call("board_send_command"), _("Board send command"), 50).leaf = true
 end
 
 function go_to_homepage()
@@ -161,7 +172,7 @@ function homepage()
   local ifnames = {}
   for i, v in ipairs(network) do
     local ifname = luci.util.trim(string.split(network[i], " ")[1])
-    if ifname and ifname ~= "" then
+    if not_empty(ifname) then
       table.insert(ifnames, ifname)
     end
   end
@@ -272,7 +283,7 @@ function config_post()
   uci:load("network")
   uci:load("arduino")
 
-  if params["password"] and params["password"] ~= "" then
+  if not_empty(params["password"]) then
     local password = params["password"]
     luci.sys.user.setpasswd("root", password)
 
@@ -375,17 +386,110 @@ function ready()
   return
 end
 
+local function build_bridge_request_digital_analog(command, pin, padded_pin, value)
+  local data = "D"
+  if command == "analog" then
+    data = "A"
+  end
+
+  if value then
+    if command == "digital" then
+      if value ~= 0 and value ~= 1 then
+        return nil
+      end
+      data = data .. "W" .. padded_pin .. value
+    else
+      if value > 999 then
+        return nil
+      end
+      data = data .. "W" .. padded_pin .. string.format("%03d", value)
+    end
+  else
+    data = data .. "R" .. padded_pin
+  end
+
+  local bridge_request = {
+    command = "raw",
+    data = data
+  }
+  return bridge_request
+end
+
+local function build_bridge_request(command, params)
+
+  if command == "digital" or command == "analog" or command == "mode" then
+    local pin = tonumber(params[1])
+
+    if not pin then
+      return nil
+    end
+
+    local padded_pin = string.format("%02d", pin)
+
+    if command == "digital" or command == "analog" then
+      return build_bridge_request_digital_analog(command, pin, padded_pin, tonumber(params[2]))
+    else
+      if params[2] ~= "output" and params[2] ~= "input" then
+        return nil
+      end
+      
+      local data = "P"
+      if params[2] == "output" then
+        data = data .. "O" .. padded_pin
+      else
+        data = data .. "I" .. padded_pin
+      end
+      local bridge_request = {
+        command = "raw",
+        data = data
+      }
+      return bridge_request
+    end
+  end
+
+  local bridge_request = {}
+
+  if command == "raw" then
+    bridge_request["command"] = "raw"
+    bridge_request["data"] = table.concat(params, "/")
+    return bridge_request
+  end
+
+  if command == "get" then
+    bridge_request["command"] = command
+    if not_empty(params[1]) then
+      bridge_request["key"] = params[1]
+    end
+    return bridge_request
+  end
+
+  if command == "put" and not_empty(params[1]) and params[2] then
+    bridge_request["command"] = command
+    bridge_request["key"] = params[1]
+    bridge_request["value"] = params[2]
+    return bridge_request
+  end
+
+  if command == "delete" and not_empty(params[1]) then
+    bridge_request["command"] = command
+    bridge_request["key"] = params[1]
+    return bridge_request
+  end
+
+  return nil
+end
+
 function board_send_command()
   local method = luci.http.getenv("REQUEST_METHOD")
   local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
-  local command = parts[4]
+  local command = parts[3]
   if not command or command == "" then
     http_error(404)
     return
   end
   local params = {}
   for idx, param in ipairs(parts) do
-    if idx > 4 then
+    if idx > 3 and not_empty(param) then
       table.insert(params, param)
     end
   end
@@ -394,18 +498,8 @@ function board_send_command()
     command = command
   }
   -- TODO check method?
-  if command == "raw" then
-    bridge_request["data"] = table.concat(params, "/")
-  elseif command == "get" then
-    if params[1] and params[1] ~= "" then
-      bridge_request["key"] = params[1]
-    end
-  elseif command == "put" and params[1] and params[1] ~= "" and params[2] then
-    bridge_request["key"] = params[1]
-    bridge_request["value"] = params[2]
-  elseif command == "delete" and params[1] and params[1] ~= "" then
-    bridge_request["key"] = params[1]
-  else
+  local bridge_request = build_bridge_request(command, params)
+  if not bridge_request then
     http_error(404)
     return
   end
