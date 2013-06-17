@@ -528,6 +528,7 @@ function board_send_command()
 
     if response_text == "" then
       luci.http.status(200)
+      sock:close()
       return
     end
 
@@ -542,7 +543,10 @@ function board_send_command()
 
     if not bytes then
       http_error(500, "Empty response")
+      sock:close()
       return
     end
   end
+
+  sock:close()
 end
