@@ -14,6 +14,7 @@ local function lines_from(file)
   return lines
 end
 
+--[[
 local function rfind(s, c)
   local last = 1
   while string.find(s, c, last, true) do
@@ -21,6 +22,7 @@ local function rfind(s, c)
   end
   return last
 end
+]]
 
 local function param(name)
   local val = luci.http.formvalue(name)
@@ -219,7 +221,6 @@ function homepage()
 
   local update_file = check_update_file()
   if update_file then
-    update_file = string.sub(update_file, rfind(update_file, "/"))
     ctx["update_file"] = update_file
   end
 
@@ -375,7 +376,6 @@ function reset_board()
 
     luci.template.render("arduino/board_reset", { name = "Arduino Yun-" .. macaddr })
 
-    update_file = string.sub(update_file, rfind(update_file, "/"))
     luci.util.exec("blink-start 50")
     luci.util.exec("run-sysupgrade " .. update_file)
   end
@@ -432,7 +432,7 @@ local function build_bridge_request(command, params)
       if params[2] ~= "output" and params[2] ~= "input" then
         return nil
       end
-      
+
       local data = "P"
       if params[2] == "output" then
         data = data .. "O" .. padded_pin
