@@ -69,5 +69,5 @@ if info.mac then
   print("MAC address: " .. info.mac)
 end
 if info.rx_bytes and info.tx_bytes then
-  print("RX/TX: " .. math.floor(info.rx_bytes / 1024).. "/" .. math.floor(info.tx_bytes / 1024) .. " KBs")
+  print("RX/TX: " .. math.floor(info.rx_bytes / 1024) .. "/" .. math.floor(info.tx_bytes / 1024) .. " KBs")
 end
