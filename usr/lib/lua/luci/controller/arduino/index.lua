@@ -60,6 +60,14 @@ local function set_first(cursor, config, type, option, value)
   end)
 end
 
+local function delete_first(cursor, config, type, option, value)
+  cursor:foreach(config, type, function(s)
+    if s[".type"] == type then
+      cursor:delete(config, s[".name"], option)
+    end
+  end)
+end
+
 function http_error(code, text)
   luci.http.prepare_content("text/plain")
   luci.http.status(code)
@@ -282,6 +290,7 @@ function config_post()
   uci:load("system")
   uci:load("wireless")
   uci:load("network")
+  uci:load("dhcp")
   uci:load("arduino")
 
   if not_empty(params["password"]) then
@@ -339,6 +348,7 @@ function config_post()
 
   uci:delete("network", "lan", "ipaddr")
   uci:delete("network", "lan", "netmask")
+  delete_first(uci, "dhcp", "dnsmasq", "address")
 
   uci:set("network", "lan", "proto", "dhcp")
   uci:set("arduino", "lan", "proto", "dhcp")
@@ -348,7 +358,19 @@ function config_post()
   uci:commit("system")
   uci:commit("wireless")
   uci:commit("network")
+  uci:commit("dhcp")
   uci:commit("arduino")
+
+  local new_httpd_conf = ""
+  for line in io.lines("/etc/httpd.conf") do
+    if string.find(line, "C:192.168") == 1 then
+      line = "#" .. line
+    end
+    new_httpd_conf = new_httpd_conf .. line .. "\n"
+  end
+  local new_httpd_conf_file = io.open("/etc/httpd.conf", "w+")
+  new_httpd_conf_file:write(new_httpd_conf)
+  new_httpd_conf_file:close()
 
   local ctx = {
     hostname = get_first(uci, "system", "system", "hostname"),
