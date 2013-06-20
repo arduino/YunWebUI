@@ -409,25 +409,20 @@ function ready()
 end
 
 local function build_bridge_request_digital_analog(command, pin, padded_pin, value)
-  local data = "D"
-  if command == "analog" then
-    data = "A"
-  end
+  local data = command .. "/" .. padded_pin;
 
   if value then
     if command == "digital" then
       if value ~= 0 and value ~= 1 then
         return nil
       end
-      data = data .. "W" .. padded_pin .. value
+      data = data .. "/" .. value
     else
       if value > 999 then
         return nil
       end
-      data = data .. "W" .. padded_pin .. string.format("%03d", value)
+      data = data .. "/" .. string.format("%03d", value)
     end
-  else
-    data = data .. "R" .. padded_pin
   end
 
   local bridge_request = {
@@ -455,12 +450,7 @@ local function build_bridge_request(command, params)
         return nil
       end
 
-      local data = "P"
-      if params[2] == "output" then
-        data = data .. "O" .. padded_pin
-      else
-        data = data .. "I" .. padded_pin
-      end
+      local data = "mode" .. "/" .. padded_pin .. "/" .. params[2]
       local bridge_request = {
         command = "raw",
         data = data
