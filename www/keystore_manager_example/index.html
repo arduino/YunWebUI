@@ -1,0 +1,162 @@
+<html>
+<body>
+<div id="template" style="visibility: hidden; display: none;">
+  Key: "KEY", Value: <input name="KEY" type="hidden" value="VALUE"> <input name="KEY" value="VALUE" type="text"> <input type="button" name="KEY" value="delete"><br/>
+</div>
+
+<div id="warning" style="display: none;">
+  <span style="color: red;">You are using HTTP. We suggest to use HTTPS to protect your Y&uacute;n password<br><br></span>
+</div>
+
+Password: <input id="password" type="password" value="arduino">
+<br/>
+<br/>
+
+<div id="storage">
+  Retrieving storage values...
+</div>
+<br/>
+
+<div>
+  Add a new entry into the storage:<br>
+  Key: <input id="new_storage_key" type="text"><br>
+  Value: <input id="new_storage_value" type="text">
+</div>
+
+<input id="update" type="button" value="Update!">
+
+<script type="text/javascript" src="jquery-2.0.2-ajax-only.min.js"></script>
+<script>
+  "use strict";
+
+  var please_wait_message = "Retrieving storage values...";
+
+  function util_make_basic_auth(user, password) {
+    var tok = user + ':' + (password || "arduino");
+    var hash = btoa(tok);
+    return "Basic " + hash;
+  }
+
+  function error_handler(error) {
+    if (error && error.status && error.status === 403) {
+      alert("Password is wrong!");
+      return
+    }
+
+    alert("Error! Check browser console");
+    console.log(arguments);
+  }
+
+  function storage_retrieve_all(callback) {
+    $.ajax({
+      url: "/arduino/get",
+      headers: {
+        Authorization: util_make_basic_auth("root", $("#password").val())
+      },
+      success: callback,
+      error: error_handler
+    })
+  }
+
+  function storage_delete_by_key(key, callback) {
+    $.ajax({
+      url: "/arduino/delete/" + encodeURIComponent(key),
+      headers: {
+        Authorization: util_make_basic_auth("root", $("#password").val())
+      },
+      success: callback,
+      error: error_handler
+    })
+  }
+
+  function storage_update_key_value(key, value, callback) {
+    $.ajax({
+      url: "/arduino/put/" + encodeURIComponent(key) + "/" + encodeURIComponent(value),
+      headers: {
+        Authorization: util_make_basic_auth("root", $("#password").val())
+      },
+      success: callback,
+      error: error_handler
+    })
+  }
+
+  function repaint_storage(storage) {
+    $("#storage").empty();
+
+    if (storage.value.length === 0) {
+      $("#storage").html("Storage is empty!");
+      return;
+    }
+
+    var template = $("#template").html();
+
+    var html = "";
+    for (var key in storage.value) {
+      html = html + template.replace(/KEY/g, key).replace(/VALUE/g, storage.value[key]);
+    }
+    $("#storage").html(html);
+  }
+
+  function confirm_storage_key_deletion(event) {
+    if (confirm("Are you sure you want to delete this key?")) {
+      var $key_value = $(event.target);
+
+      storage_delete_by_key($key_value.attr("name"), function() {
+        $("#storage").html(please_wait_message);
+        storage_retrieve_all(repaint_storage);
+      });
+    }
+  }
+
+  function update_storage(callback) {
+    var keys_to_update = [];
+    $("#storage input[type=text]").each(function(idx, item) {
+      var $key_value = $(item);
+      if ($key_value.val() !== $("#storage input[type=hidden][name=" + $key_value.attr("name") + "]").val()) {
+        keys_to_update.push({
+          key: $key_value.attr("name"),
+          value: $key_value.val()
+        });
+      }
+    });
+
+    var new_storage_key = $("#new_storage_key").val();
+    var new_storage_value = $("#new_storage_value").val();
+    if (new_storage_key && new_storage_value) {
+      keys_to_update.push({
+        key: new_storage_key,
+        value: new_storage_value
+      });
+      $("#new_storage_key").val("");
+      $("#new_storage_value").val("");
+    }
+
+    var done = 0;
+    for (var idx = 0; idx < keys_to_update.length; idx++) {
+      storage_update_key_value(keys_to_update[idx].key, keys_to_update[idx].value, function() {
+        done++;
+        if (done === keys_to_update.length) {
+          callback();
+        }
+      });
+    }
+  }
+
+  $(function() {
+    $("#storage").html(please_wait_message);
+    storage_retrieve_all(repaint_storage);
+    $("#storage").on("click", "input[type=button]", confirm_storage_key_deletion);
+    $("#update").on("click", function() {
+      update_storage(function() {
+        $("#storage").html(please_wait_message);
+        storage_retrieve_all(repaint_storage);
+      })
+    });
+
+    if (window.location.protocol === "http:") {
+      $("#warning").attr("style", "");
+    }
+  });
+</script>
+</body>
+</html>
