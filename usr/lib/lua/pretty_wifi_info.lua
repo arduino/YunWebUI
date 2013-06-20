@@ -62,8 +62,8 @@ end
 if info.uptime then
   print("Active for: " .. math.floor(info.uptime / 60) .. " minutes")
 end
-if #info.ipaddrs > 1 then
-  print("IP address:" .. info.ipaddrs[1].addr .. "/" .. info.ipaddrs[1].netmask)
+if #info.ipaddrs > 0 then
+  print("IP address: " .. info.ipaddrs[1].addr .. "/" .. info.ipaddrs[1].netmask)
 end
 if info.mac then
   print("MAC address: " .. info.mac)
