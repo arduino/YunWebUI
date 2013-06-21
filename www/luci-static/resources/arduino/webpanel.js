@@ -85,7 +85,9 @@ if (typeof(getPublicKey) === "function") {
 function send_post(url, form, real_form_id) {
   var json = {};
   for (var i = 3; i < arguments.length; i++) {
-    json[arguments[i]] = form[arguments[i]].value;
+    if (!form[arguments[i]].disabled) {
+      json[arguments[i]] = form[arguments[i]].value;
+    }
   }
   var pgp_message = doEncrypt(key_id, 0, public_key, JSON.stringify(json));
   var real_form = document.getElementById(real_form_id);
