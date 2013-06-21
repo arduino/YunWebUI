@@ -1,31 +1,58 @@
 <html>
+<head>
+  <title>Bridge Key/Value Storage Manager Example</title>
+  <style>
+    body {
+      background-color: #00979c;
+      color: #222;
+      font: 1em "Lucida Grande", Lucida, Verdana, sans-serif;
+    }
+  </style>
+</head>
 <body>
-<div id="template" style="visibility: hidden; display: none;">
-  Key: "KEY", Value: <input name="KEY" type="hidden" value="VALUE"> <input name="KEY" value="VALUE" type="text"> <input type="button" name="KEY" value="delete"><br/>
+<div style="visibility: hidden; display: none;">
+  <table id="template">
+    <tr>
+      <td>"KEY"</td>
+      <td><input name="KEY" type="hidden" value="VALUE"> <input name="KEY" value="VALUE" type="text"></td>
+      <td><input type="button" name="KEY" value="delete"></td>
+    </tr>
+  </table>
 </div>
 
-<div id="warning" style="display: none;">
-  <span style="color: red;">You are using HTTP. We suggest to use HTTPS to protect your Y&uacute;n password<br><br></span>
+<div style="background: none repeat scroll 0 0 #F5F5F5">
+  <div style="padding: 2em;">
+    <div id="warning" style="display: none;">
+      <span style="color: #c37676;">You are using HTTP. We suggest to use HTTPS to protect your Y&uacute;n password<br><br></span>
+    </div>
+
+    Password: <input id="password" type="password" value="arduino">
+    <br/>
+    <br/>
+
+    <div id="storage">
+      Retrieving storage values...
+    </div>
+    <br/>
+
+    <div>
+      Add a new entry into the storage:<br>
+      <table>
+        <tr>
+          <td>Key:</td>
+          <td><input id="new_storage_key" type="text"></td>
+        </tr>
+        <tr>
+          <td>Value:</td>
+          <td><input id="new_storage_value" type="text"></td>
+        </tr>
+      </table>
+    </div>
+
+    <input id="update" type="button" value="Update!">
+  </div>
 </div>
-
-Password: <input id="password" type="password" value="arduino">
-<br/>
-<br/>
-
-<div id="storage">
-  Retrieving storage values...
-</div>
-<br/>
-
-<div>
-  Add a new entry into the storage:<br>
-  Key: <input id="new_storage_key" type="text"><br>
-  Value: <input id="new_storage_value" type="text">
-</div>
-
-<input id="update" type="button" value="Update!">
-
-<script type="text/javascript" src="jquery-2.0.2-ajax-only.min.js"></script>
+<script type="text/javascript" src="zepto.min.js"></script>
 <script>
   "use strict";
 
@@ -43,13 +70,19 @@ Password: <input id="password" type="password" value="arduino">
       return
     }
 
-    alert("Error! Check browser console");
+    if (error && error.status && error.status === 500) {
+      alert("Error accessing the key/value store. Is the Bridge example sketch running?");
+    } else {
+      alert("Uknown error: check browser console");
+    }
+
     console.log(arguments);
   }
 
   function storage_retrieve_all(callback) {
     $.ajax({
       url: "/arduino/get",
+      timeout: 10000,
       headers: {
         Authorization: util_make_basic_auth("root", $("#password").val())
       },
@@ -61,6 +94,7 @@ Password: <input id="password" type="password" value="arduino">
   function storage_delete_by_key(key, callback) {
     $.ajax({
       url: "/arduino/delete/" + encodeURIComponent(key),
+      timeout: 10000,
       headers: {
         Authorization: util_make_basic_auth("root", $("#password").val())
       },
@@ -72,6 +106,7 @@ Password: <input id="password" type="password" value="arduino">
   function storage_update_key_value(key, value, callback) {
     $.ajax({
       url: "/arduino/put/" + encodeURIComponent(key) + "/" + encodeURIComponent(value),
+      timeout: 10000,
       headers: {
         Authorization: util_make_basic_auth("root", $("#password").val())
       },
@@ -88,20 +123,19 @@ Password: <input id="password" type="password" value="arduino">
       return;
     }
 
-    var template = $("#template").html();
+    var template = $("#template tbody").html();
 
     var html = "";
     for (var key in storage.value) {
       html = html + template.replace(/KEY/g, key).replace(/VALUE/g, storage.value[key]);
     }
-    $("#storage").html(html);
+    $("#storage").html("<table><tr><td>Key</td><td>Value</td><td></td></tr>" + html + "</table>");
   }
 
   function confirm_storage_key_deletion(event) {
-    if (confirm("Are you sure you want to delete this key?")) {
-      var $key_value = $(event.target);
-
-      storage_delete_by_key($key_value.attr("name"), function() {
+    var key = $(event.target).attr("name");
+    if (confirm("Are you sure you want to delete key \"" + key + "\" ?")) {
+      storage_delete_by_key(key, function() {
         $("#storage").html(please_wait_message);
         storage_retrieve_all(repaint_storage);
       });
