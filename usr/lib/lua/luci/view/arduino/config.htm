@@ -54,29 +54,6 @@ http.prepare_content("text/html; charset=utf-8")
     </li>
 
     <li>
-      <label class="desc" for="wifi.country">
-        Country: <span class="req">*</span>
-      </label>
-
-      <div class="input_container">
-        <select id="wifi.country" name="wifi.country">
-          <option value="00"
-          <%if wifi["country"] == "00" then %>
-          selected="selected"
-          <% end %>
-          >Rest of the world</option>
-          <% for k, country in ipairs(countries) do %>
-          <option value="<%= country["code"] %>"
-          <%if wifi["country"] == country["code"] then %>
-          selected="selected"
-          <% end %>
-          ><%= country["label"] %></option>
-          <% end %>
-        </select>
-      </div>
-    </li>
-
-    <li>
       <label class="desc" for="timezone_desc">
         Timezone: <span class="req">*</span>
       </label>
@@ -100,14 +77,44 @@ http.prepare_content("text/html; charset=utf-8")
     </li>
 
     <li>
-      <label class="title">
+      <label class="desc">
+	      <input type="checkbox" name="wifi.configure" id="wifi.configure" checked="true"/>
+      </label>
+      <div class="separator-like-label">I want to configure my WiFi network</div>
+    </li>
+
+    <li>
+      <label id="wifi.parameters" class="title">
 	WiFi parameters
       </label>
       <br/>
     </li>
 
     <li>
-      <label class="desc" for="wifi.ssid">
+      <label class="desc" id="wifi.country.label" for="wifi.country">
+        Country: <span class="req">*</span>
+      </label>
+
+      <div class="input_container">
+        <select id="wifi.country" name="wifi.country">
+          <option value="00"
+          <%if wifi["country"] == "00" then %>
+          selected="selected"
+          <% end %>
+          >Rest of the world</option>
+          <% for k, country in ipairs(countries) do %>
+          <option value="<%= country["code"] %>"
+          <%if wifi["country"] == country["code"] then %>
+          selected="selected"
+          <% end %>
+          ><%= country["label"] %></option>
+          <% end %>
+        </select>
+      </div>
+    </li>
+
+    <li>
+      <label class="desc" id="wifi.ssid.label" for="wifi.ssid">
 	WiFi name <span class="req">*</span>
       </label>
 
@@ -117,7 +124,7 @@ http.prepare_content("text/html; charset=utf-8")
     </li>
 
     <li>
-      <label class="desc" for="wifi.encryption">
+      <label class="desc" id="wifi.encryption.label" for="wifi.encryption">
 	Security <span class="req">*</span>
       </label>
 
@@ -135,7 +142,7 @@ http.prepare_content("text/html; charset=utf-8")
     </li>
 
     <li>
-      <label class="desc" for="wifi.password">
+      <label class="desc" id="wifi.password.label" for="wifi.password">
 	Password <span id="req_3" class="req"
         <% if not wifi["encryption"] or wifi["encryption"] == "none" then %>
         style="visibility:hidden;"

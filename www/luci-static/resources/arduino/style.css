@@ -60,6 +60,12 @@ img {
     height: auto;
 }
 
+.separator-like-label {
+    font-size: .75em;
+    color: #666;
+    padding: 0.4em;
+}
+
 label {
     font-size: .75em;
     margin-bottom: .6125em;

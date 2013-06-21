@@ -324,36 +324,38 @@ function config_post()
     end
   end
 
-  uci:set("wireless", "radio0", "channel", "auto")
-  uci:set("arduino", "radio0", "channel", "auto")
-  set_first(uci, "wireless", "wifi-iface", "mode", "sta")
-  set_first(uci, "arduino", "wifi-iface", "mode", "sta")
+  if params["wifi.ssid"] and params["wifi.encryption"] then
+    uci:set("wireless", "radio0", "channel", "auto")
+    uci:set("arduino", "radio0", "channel", "auto")
+    set_first(uci, "wireless", "wifi-iface", "mode", "sta")
+    set_first(uci, "arduino", "wifi-iface", "mode", "sta")
 
-  if params["wifi.ssid"] then
-    set_first(uci, "wireless", "wifi-iface", "ssid", params["wifi.ssid"])
-    set_first(uci, "arduino", "wifi-iface", "ssid", params["wifi.ssid"])
-  end
-  if params["wifi.encryption"] then
-    set_first(uci, "wireless", "wifi-iface", "encryption", params["wifi.encryption"])
-    set_first(uci, "arduino", "wifi-iface", "encryption", params["wifi.encryption"])
-  end
-  if params["wifi.password"] then
-    set_first(uci, "wireless", "wifi-iface", "key", params["wifi.password"])
-    set_first(uci, "arduino", "wifi-iface", "key", params["wifi.password"])
-  end
-  if params["wifi.country"] then
-    uci:set("wireless", "radio0", "country", params["wifi.country"])
-    uci:set("arduino", "radio0", "country", params["wifi.country"])
-  end
+    if params["wifi.ssid"] then
+      set_first(uci, "wireless", "wifi-iface", "ssid", params["wifi.ssid"])
+      set_first(uci, "arduino", "wifi-iface", "ssid", params["wifi.ssid"])
+    end
+    if params["wifi.encryption"] then
+      set_first(uci, "wireless", "wifi-iface", "encryption", params["wifi.encryption"])
+      set_first(uci, "arduino", "wifi-iface", "encryption", params["wifi.encryption"])
+    end
+    if params["wifi.password"] then
+      set_first(uci, "wireless", "wifi-iface", "key", params["wifi.password"])
+      set_first(uci, "arduino", "wifi-iface", "key", params["wifi.password"])
+    end
+    if params["wifi.country"] then
+      uci:set("wireless", "radio0", "country", params["wifi.country"])
+      uci:set("arduino", "radio0", "country", params["wifi.country"])
+    end
 
-  uci:delete("network", "lan", "ipaddr")
-  uci:delete("network", "lan", "netmask")
-  --delete_first(uci, "dhcp", "dnsmasq", "address")
+    uci:delete("network", "lan", "ipaddr")
+    uci:delete("network", "lan", "netmask")
+    --delete_first(uci, "dhcp", "dnsmasq", "address")
 
-  uci:set("network", "lan", "proto", "dhcp")
-  uci:set("arduino", "lan", "proto", "dhcp")
+    uci:set("network", "lan", "proto", "dhcp")
+    uci:set("arduino", "lan", "proto", "dhcp")
 
-  set_first(uci, "arduino", "arduino", "wifi_reset_step", "clear")
+    set_first(uci, "arduino", "arduino", "wifi_reset_step", "clear")
+  end
 
   uci:commit("system")
   uci:commit("wireless")
