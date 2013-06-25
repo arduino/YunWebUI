@@ -148,31 +148,41 @@ function index()
     return false
   end
 
-  local function protected_entry(path, target, title, order)
+  local function make_entry(path, target, title, order)
     local page = entry(path, target, title, order)
-    page.sysauth = "root"
-    page.sysauth_authenticator = "arduinoauth"
+    page.leaf = true
     return page
   end
 
-  protected_entry({ "arduino" }, call("homepage"), _("Arduino Web Panel"), 10)
-  protected_entry({ "arduino", "set_password" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
-  protected_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20).leaf = true
-  protected_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20).leaf = true
-  protected_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30).leaf = true
-  protected_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60).leaf = true
+  local arduino = node("arduino")
+  arduino.sysauth = "root"
+  arduino.sysauth_authenticator = "arduinoauth"
 
-  protected_entry({ "arduino", "digital" }, call("board_send_command"), _("Board send command"), 50).leaf = true
-  protected_entry({ "arduino", "analog" }, call("board_send_command"), _("Board send command"), 50).leaf = true
-  protected_entry({ "arduino", "mode" }, call("board_send_command"), _("Board send command"), 50).leaf = true
-  protected_entry({ "arduino", "raw" }, call("board_send_command"), _("Board send command"), 50).leaf = true
-  protected_entry({ "arduino", "get" }, call("board_send_command"), _("Board send command"), 50).leaf = true
-  protected_entry({ "arduino", "put" }, call("board_send_command"), _("Board send command"), 50).leaf = true
-  protected_entry({ "arduino", "delete" }, call("board_send_command"), _("Board send command"), 50).leaf = true
+  make_entry({ "arduino", "homepage" }, call("homepage"), _("Arduino Web Panel"), 10)
+  make_entry({ "arduino", "set_password" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
+  make_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
+  make_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20)
+  make_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30)
+  make_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60)
+
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+  local secure_rest_api = uci:get_first("arduino", "arduino", "secure_rest_api")
+  local rest_api_sysauth = false
+  if secure_rest_api == "true" then
+    rest_api_sysauth = "root"
+  end
+  make_entry({ "arduino", "digital" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
+  make_entry({ "arduino", "analog" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
+  make_entry({ "arduino", "mode" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
+  make_entry({ "arduino", "raw" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
+  make_entry({ "arduino", "get" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
+  make_entry({ "arduino", "put" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
+  make_entry({ "arduino", "delete" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
 end
 
 function go_to_homepage()
-  luci.http.redirect(luci.dispatcher.build_url("arduino"))
+  luci.http.redirect(luci.dispatcher.build_url("arduino/homepage"))
 end
 
 function homepage()
