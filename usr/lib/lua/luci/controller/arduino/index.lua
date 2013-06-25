@@ -170,7 +170,7 @@ function index()
   local secure_rest_api = uci:get_first("arduino", "arduino", "secure_rest_api")
   local rest_api_sysauth = false
   if secure_rest_api == "true" then
-    rest_api_sysauth = "root"
+    rest_api_sysauth = arduino.sysauth
   end
   make_entry({ "arduino", "digital" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
   make_entry({ "arduino", "analog" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
