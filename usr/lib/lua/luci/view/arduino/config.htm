@@ -21,7 +21,7 @@ http.prepare_content("text/html; charset=utf-8")
   </div>
   <div id="content">
     <div class="wrapper">
-<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.country', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
+<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
   <div id="error_container" class="hidden">
     <p>An error has occurred.</p>
   </div>
@@ -55,17 +55,12 @@ http.prepare_content("text/html; charset=utf-8")
 
     <li>
       <label class="desc" for="timezone_desc">
-        Timezone: <span class="req">*</span>
+        Country: <span class="req">*</span>
       </label>
 
       <div class="input_container">
         <select id="timezone_desc" name="timezone_desc">
-          <option value="UTC"
-          <%if timezone_desc == "UTC" then %>
-          selected="selected"
-          <% end %>
-          >UTC</option>
-          <% for k, tz in ipairs(timezones) do %>
+          <% for k, tz in ipairs(timezones_wifi_reg_domains) do %>
           <option value="<%= tz["label"] %>"
           <%if timezone_desc == tz["label"] then %>
           selected="selected"
@@ -88,29 +83,6 @@ http.prepare_content("text/html; charset=utf-8")
 	WiFi parameters
       </label>
       <br/>
-    </li>
-
-    <li>
-      <label class="desc" id="wifi.country.label" for="wifi.country">
-        Country: <span class="req">*</span>
-      </label>
-
-      <div class="input_container">
-        <select id="wifi.country" name="wifi.country">
-          <option value="00"
-          <%if wifi["country"] == "00" then %>
-          selected="selected"
-          <% end %>
-          >Rest of the world</option>
-          <% for k, country in ipairs(countries) do %>
-          <option value="<%= country["code"] %>"
-          <%if wifi["country"] == country["code"] then %>
-          selected="selected"
-          <% end %>
-          ><%= country["label"] %></option>
-          <% end %>
-        </select>
-      </div>
     </li>
 
     <li>

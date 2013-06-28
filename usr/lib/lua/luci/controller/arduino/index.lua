@@ -251,7 +251,7 @@ local function csv_to_array(text)
   local lines = string.split(text, "\n")
   for i, line in ipairs(lines) do
     line_parts = string.split(line, "\t")
-    table.insert(array, { code = line_parts[1], label = line_parts[2] })
+    table.insert(array, { label = line_parts[1], timezone = line_parts[2], code = line_parts[3] })
   end
   return array
 end
@@ -261,13 +261,7 @@ function config_get()
   uci:load("system")
   uci:load("wireless")
 
-  local wifi_countries = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi.csv.gz"))
-
-  local timezones = {}
-  local TZ = require("luci.sys.zoneinfo.tzdata").TZ
-  for i, tz in ipairs(TZ) do
-    table.insert(timezones, { code = tz[2], label = tz[1] })
-  end
+  local timezones_wifi_reg_domains = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_timezones.csv.gz"))
 
   local encryptions = {}
   encryptions[1] = { code = "none", label = "None" }
@@ -282,10 +276,8 @@ function config_get()
       ssid = get_first(uci, "arduino", "wifi-iface", "ssid"),
       encryption = get_first(uci, "arduino", "wifi-iface", "encryption"),
       password = get_first(uci, "arduino", "wifi-iface", "key"),
-      country = uci:get("arduino", "radio0", "country")
     },
-    countries = wifi_countries,
-    timezones = timezones,
+    timezones_wifi_reg_domains = timezones_wifi_reg_domains,
     encryptions = encryptions,
     pub_key = luci.controller.arduino.index.read_gpg_pub_key()
   }
@@ -295,7 +287,7 @@ end
 
 function config_post()
   local params = decrypt_pgp_message()
-
+  
   local uci = luci.model.uci.cursor()
   uci:load("system")
   uci:load("wireless")
@@ -317,20 +309,21 @@ function config_post()
   end
 
   if params["timezone_desc"] then
-    local function find_timezone(timezone_desc)
-      local TZ = require("luci.sys.zoneinfo.tzdata").TZ
-      for i, tz in ipairs(TZ) do
-        if tz[1] == timezone_desc then
-          return tz[2]
+    local function find_tz_regdomain(timezone_desc)
+      local tz_regdomains = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_timezones.csv.gz"))
+      for i, tz in ipairs(tz_regdomains) do
+        if tz["label"] == timezone_desc then
+          return tz
         end
       end
       return nil
     end
 
-    local timezone = find_timezone(params["timezone_desc"])
-    if timezone then
-      set_first(uci, "system", "system", "timezone", timezone)
+    local tz_regdomain = find_tz_regdomain(params["timezone_desc"])
+    if tz_regdomain then
+      set_first(uci, "system", "system", "timezone", tz_regdomain.timezone)
       set_first(uci, "system", "system", "timezone_desc", params["timezone_desc"])
+      params["wifi.country"] = tz_regdomain.code
     end
   end
 

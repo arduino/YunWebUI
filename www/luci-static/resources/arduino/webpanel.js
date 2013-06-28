@@ -97,7 +97,7 @@ function send_post(url, form, real_form_id) {
 }
 
 function grey_out_wifi_conf(disabled) {
-  var ids = ["wifi.country", "wifi.ssid", "wifi.encryption", "wifi.password"];
+  var ids = ["wifi.ssid", "wifi.encryption", "wifi.password"];
   for (var idx in ids) {
     document.getElementById(ids[idx]).disabled = disabled;
   }
