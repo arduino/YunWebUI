@@ -134,6 +134,11 @@ input.saveForm {
     -webkit-appearance: none;
 }
 
+input.advanced {
+    font-size: 0.8em;
+    height: 30px;
+}
+
 span.saveForm {
     font-size: smaller;
 }
@@ -231,6 +236,11 @@ span.saveForm {
         display: block;
         -webkit-appearance: none;
     }
+
+    input.advanced {
+        height: 30px;
+        width: 168px;
+    }
 }
 
 @media (min-width:1200px) {
@@ -280,6 +290,12 @@ span.saveForm {
     input.saveForm {
         width: 410px;
         margin-left: 218px;
+        -webkit-appearance: none;
+    }
+
+    input.advanced {
+        width: 210px;
+        margin-left: 418px;
         -webkit-appearance: none;
     }
 }
