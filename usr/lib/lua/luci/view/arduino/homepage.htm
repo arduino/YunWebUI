@@ -83,15 +83,6 @@ There's been a problem last time I tried configuring wifi. Check the following l
 </textarea>
 <script language="javascript">document.getElementsByTagName("textarea")[0].scrollTop = 99999;</script>
 <% end %>
-      <form method="get" action="<%= pcdata(controller .. '/') %>">
-        <ul>
-          <li>
-            <div class="input_container">
-              <input class="btTxt submit saveForm advanced" type="submit" name="button" value="Advanced configuration">
-            </div>
-          </li>
-        </ul>
-      </form>
       <% if rest_api_is_secured then %>
       REST API is password protected
       <% else %>
@@ -106,6 +97,15 @@ There's been a problem last time I tried configuring wifi. Check the following l
               <% else %>
               <input class="btTxt submit saveForm" type="submit" name="button" value="Password protect REST API">
               <% end %>
+            </div>
+          </li>
+        </ul>
+      </form>
+      <form method="get" action="<%= pcdata(controller .. '/') %>">
+        <ul>
+          <li>
+            <div class="input_container">
+              <input class="btTxt submit saveForm advanced" type="submit" name="button" value="Advanced configuration">
             </div>
           </li>
         </ul>
