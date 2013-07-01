@@ -75,6 +75,7 @@ function onchange_security(select) {
   } else {
     wifi_password_asterisk.removeAttribute("style");
     wifi_password.disabled = false;
+    wifi_password.focus();
   }
 }
 
