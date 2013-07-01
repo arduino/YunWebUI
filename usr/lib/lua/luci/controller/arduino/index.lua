@@ -163,6 +163,7 @@ function index()
   make_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
   make_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20)
   make_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30)
+  make_entry({ "arduino", "toogle_rest_api_security" }, call("toogle_rest_api_security"), _("Toogle REST API security"), 50)
   make_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60)
 
   local uci = luci.model.uci.cursor()
@@ -228,9 +229,14 @@ function homepage()
     end
   end
 
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+  local secure_rest_api = uci:get_first("arduino", "arduino", "secure_rest_api")
+
   local ctx = {
     hostname = luci.sys.hostname(),
-    ifaces = ifaces
+    ifaces = ifaces,
+    rest_api_is_secured = secure_rest_api == "true"
   }
 
   if file_exists("/last_dmesg_with_wifi_errors.log") then
@@ -408,6 +414,22 @@ function reset_board()
     luci.util.exec("blink-start 50")
     luci.util.exec("run-sysupgrade " .. update_file)
   end
+end
+
+function toogle_rest_api_security()
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+
+  local secure_rest_api = get_first(uci, "arduino", "arduino", "secure_rest_api")
+  if secure_rest_api == "true" then
+    set_first(uci, "arduino", "arduino", "secure_rest_api", "false")
+  else
+    set_first(uci, "arduino", "arduino", "secure_rest_api", "true")
+  end
+
+  uci:commit("arduino")
+
+  go_to_homepage()
 end
 
 function ready()

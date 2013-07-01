@@ -92,6 +92,24 @@ There's been a problem last time I tried configuring wifi. Check the following l
           </li>
         </ul>
       </form>
+      <% if rest_api_is_secured then %>
+      REST API is password protected
+      <% else %>
+      REST API is open to everyone
+      <% end %>
+      <form method="post" action="<%= pcdata(controller .. '/arduino/toogle_rest_api_security') %>">
+        <ul>
+          <li>
+            <div class="input_container">
+              <% if rest_api_is_secured then %>
+              <input class="btTxt submit saveForm" type="submit" name="button" value="Open access to REST API">
+              <% else %>
+              <input class="btTxt submit saveForm" type="submit" name="button" value="Password protect REST API">
+              <% end %>
+            </div>
+          </li>
+        </ul>
+      </form>
     </div>
   </div>
   <!-- #content -->
