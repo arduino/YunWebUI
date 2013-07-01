@@ -68,10 +68,13 @@ function goto(href) {
 
 function onchange_security(select) {
   var wifi_password_asterisk = document.getElementById("req_3");
+  var wifi_password = document.getElementById("wifi.password");
   if (select.value == "none") {
     wifi_password_asterisk.setAttribute("style", "visibility: hidden");
+    wifi_password.disabled = true;
   } else {
     wifi_password_asterisk.removeAttribute("style");
+    wifi_password.disabled = false;
   }
 }
 
@@ -108,6 +111,9 @@ function grey_out_wifi_conf(disabled) {
   document.getElementById("wifi.parameters").setAttribute("style", style);
   for (var idx in ids) {
     document.getElementById(ids[idx] + ".label").setAttribute("style", style);
+  }
+  if (!disabled) {
+    onchange_security(document.getElementById("wifi.encryption"))
   }
 }
 
