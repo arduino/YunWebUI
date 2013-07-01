@@ -154,11 +154,12 @@ function index()
     return page
   end
 
-  local arduino = node("arduino")
+  local arduino = entry({ "arduino" }, alias("arduino", "go_to_homepage"), _("Arduino Web Panel"), 10)
   arduino.sysauth = "root"
   arduino.sysauth_authenticator = "arduinoauth"
 
   make_entry({ "arduino", "homepage" }, call("homepage"), _("Arduino Web Panel"), 10)
+  make_entry({ "arduino", "go_to_homepage" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
   make_entry({ "arduino", "set_password" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
   make_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
   make_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20)
@@ -293,7 +294,7 @@ end
 
 function config_post()
   local params = decrypt_pgp_message()
-  
+
   local uci = luci.model.uci.cursor()
   uci:load("system")
   uci:load("wireless")
