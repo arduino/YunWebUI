@@ -80,7 +80,7 @@ function read_gpg_pub_key()
   local gpg_pub_key_ascii_file = io.open("/etc/arduino/arduino_gpg.asc")
   local gpg_pub_key_ascii = gpg_pub_key_ascii_file:read("*a")
   gpg_pub_key_ascii_file:close()
-  return gpg_pub_key_ascii
+  return string.gsub(gpg_pub_key_ascii, "\n", "\\n")
 end
 
 dec_params = ""
