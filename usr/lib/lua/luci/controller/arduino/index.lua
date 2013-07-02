@@ -78,10 +78,8 @@ end
 
 function read_gpg_pub_key()
   local gpg_pub_key_ascii_file = io.open("/etc/arduino/arduino_gpg.asc")
-  local gpg_pub_key_ascii = ""
-  for line in gpg_pub_key_ascii_file:lines() do
-    gpg_pub_key_ascii = gpg_pub_key_ascii .. line .. "\\n"
-  end
+  local gpg_pub_key_ascii = gpg_pub_key_ascii_file:read("*a")
+  gpg_pub_key_ascii_file:close()
   return gpg_pub_key_ascii
 end
 
@@ -439,25 +437,27 @@ function ready()
 end
 
 local function build_bridge_request_digital_analog(command, pin, padded_pin, value)
-  local data = command .. "/" .. padded_pin;
+  local data = { command, "/", padded_pin };
 
   if value then
     if command == "digital" then
       if value ~= 0 and value ~= 1 then
         return nil
       end
-      data = data .. "/" .. value
+      table.insert(data, "/")
+      table.insert(data, value)
     else
       if value > 999 then
         return nil
       end
-      data = data .. "/" .. string.format("%03d", value)
+      table.insert(data, "/")
+      table.insert(data, string.format("%03d", value))
     end
   end
 
   local bridge_request = {
     command = "raw",
-    data = data
+    data = table.concat(data)
   }
   return bridge_request
 end
@@ -480,10 +480,10 @@ local function build_bridge_request(command, params)
         return nil
       end
 
-      local data = "mode" .. "/" .. padded_pin .. "/" .. params[2]
+      local data = { "mode/", padded_pin, "/", params[2] }
       local bridge_request = {
         command = "raw",
-        data = data
+        data = table.concat(data)
       }
       return bridge_request
     end
@@ -559,22 +559,23 @@ function board_send_command()
 
   local json = require("luci.json")
 
-  sock:writeall(json.encode(bridge_request) .. "\n")
+  sock:writeall(json.encode(bridge_request))
+  sock:writeall("\n")
 
-  local response_text = ""
+  local response_text = {}
   while true do
     local bytes = sock:recv(4096)
-    if bytes then
-      response_text = response_text .. bytes
+    if bytes and #bytes > 0 then
+      table.insert(response_text, bytes)
     end
 
-    if response_text == "" then
+    if #response_text == 0 then
       luci.http.status(200)
       sock:close()
       return
     end
 
-    local json_response = json.decode(response_text)
+    local json_response = json.decode(table.concat(response_text))
     if json_response then
       luci.http.prepare_content("application/json")
       luci.http.status(200)
@@ -583,7 +584,7 @@ function board_send_command()
       return
     end
 
-    if not bytes then
+    if not bytes or #response_text == 0 then
       http_error(500, "Empty response")
       sock:close()
       return
