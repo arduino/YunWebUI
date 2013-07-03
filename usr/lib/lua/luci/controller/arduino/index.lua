@@ -179,6 +179,8 @@ function index()
   make_entry({ "arduino", "get" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
   make_entry({ "arduino", "put" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
   make_entry({ "arduino", "delete" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
+
+  make_entry({ "arduino", "avr" }, call("board_plain_socket"), _("Board plain socket"), 50).sysauth = rest_api_sysauth
 end
 
 function go_to_homepage()
@@ -559,7 +561,7 @@ function board_send_command()
 
   local json = require("luci.json")
 
-  sock:writeall(json.encode(bridge_request))
+  sock:write(json.encode(bridge_request))
   sock:writeall("\n")
 
   local response_text = {}
@@ -589,6 +591,84 @@ function board_send_command()
       sock:close()
       return
     end
+  end
+
+  sock:close()
+end
+
+function board_plain_socket()
+  local function to_key_value(s)
+    local parts = luci.util.split(s, ":")
+    parts[1] = luci.util.trim(parts[1])
+    parts[2] = luci.util.trim(parts[2])
+    return parts[1], parts[2]
+  end
+
+  local function send_response(response_text)
+    local rows = luci.util.split(response_text, "\r\n")
+    if #rows == 1 or string.find(rows[1], "Status") ~= 1 then
+      luci.http.prepare_content("text/plain")
+      luci.http.status(200)
+      luci.http.write(response_text)
+      return
+    end
+
+    local body_start_at_idx = -1
+    for idx, row in ipairs(rows) do
+      if row == "" then
+        body_start_at_idx = idx
+        break
+      end
+
+      local key, value = to_key_value(row)
+      if string.lower(key) == "status" then
+        luci.http.status(tonumber(value))
+      elseif string.lower(key) == "content-type" then
+        luci.http.prepare_content(value)
+      else
+        luci.http.header(key, value)
+      end
+    end
+
+    luci.http.write(table.concat(rows, "\r\n", body_start_at_idx + 1))
+  end
+
+  local method = luci.http.getenv("REQUEST_METHOD")
+  local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
+  local params = {}
+  for idx, param in ipairs(parts) do
+    if idx > 3 and not_empty(param) then
+      table.insert(params, param)
+    end
+  end
+
+  params = table.concat(params, "/")
+
+  local sock, code, msg = nixio.connect("127.0.0.1", 5555)
+  if not sock then
+    code = code or ""
+    msg = msg or ""
+    http_error(500, "Could not connect to YunServer " .. code .. " " .. msg)
+    return
+  end
+
+  sock:setsockopt("socket", "sndtimeo", 5)
+  sock:setsockopt("socket", "rcvtimeo", 5)
+
+  sock:write(params)
+  sock:writeall("\r\n")
+
+  local response_text = {}
+  while true do
+    local bytes = sock:recv(4096)
+
+    if not bytes or #bytes == 0 then
+      send_response(table.concat(response_text))
+      sock:close()
+      return
+    end
+
+    table.insert(response_text, bytes)
   end
 
   sock:close()
