@@ -36,7 +36,7 @@ local function param(name)
   return nil
 end
 
-local function not_empty(value)
+local function not_nil_or_empty(value)
   return value and value ~= ""
 end
 
@@ -66,6 +66,13 @@ local function delete_first(cursor, config, type, option, value)
       cursor:delete(config, s[".name"], option)
     end
   end)
+end
+
+local function to_key_value(s)
+  local parts = luci.util.split(s, ":")
+  parts[1] = luci.util.trim(parts[1])
+  parts[2] = luci.util.trim(parts[2])
+  return parts[1], parts[2]
 end
 
 function http_error(code, text)
@@ -152,35 +159,40 @@ function index()
     return page
   end
 
-  local arduino = entry({ "arduino" }, alias("arduino", "go_to_homepage"), _("Arduino Web Panel"), 10)
-  arduino.sysauth = "root"
-  arduino.sysauth_authenticator = "arduinoauth"
+  -- web panel
+  local webpanel = entry({ "webpanel" }, alias("webpanel", "go_to_homepage"), _("Arduino Web Panel"), 10)
+  webpanel.sysauth = "root"
+  webpanel.sysauth_authenticator = "arduinoauth"
 
-  make_entry({ "arduino", "homepage" }, call("homepage"), _("Arduino Web Panel"), 10)
-  make_entry({ "arduino", "go_to_homepage" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
-  make_entry({ "arduino", "set_password" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
-  make_entry({ "arduino", "config" }, call("config"), _("Configure board"), 20)
-  make_entry({ "arduino", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20)
-  make_entry({ "arduino", "reset_board" }, call("reset_board"), _("Reset board"), 30)
-  make_entry({ "arduino", "toogle_rest_api_security" }, call("toogle_rest_api_security"), _("Toogle REST API security"), 50)
-  make_entry({ "arduino", "ready" }, call("ready"), _("Ready"), 60)
+  make_entry({ "webpanel", "homepage" }, call("homepage"), _("Arduino Web Panel"), 10)
+  make_entry({ "webpanel", "go_to_homepage" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
+  make_entry({ "webpanel", "set_password" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
+  make_entry({ "webpanel", "config" }, call("config"), _("Configure board"), 20)
+  make_entry({ "webpanel", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20)
+  make_entry({ "webpanel", "reset_board" }, call("reset_board"), _("Reset board"), 30)
+  make_entry({ "webpanel", "toogle_rest_api_security" }, call("toogle_rest_api_security"), _("Toogle REST API security"), 50)
 
+  --api security level
   local uci = luci.model.uci.cursor()
   uci:load("arduino")
   local secure_rest_api = uci:get_first("arduino", "arduino", "secure_rest_api")
   local rest_api_sysauth = false
   if secure_rest_api == "true" then
-    rest_api_sysauth = arduino.sysauth
+    rest_api_sysauth = webpanel.sysauth
   end
-  make_entry({ "arduino", "digital" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
-  make_entry({ "arduino", "analog" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
-  make_entry({ "arduino", "mode" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
-  make_entry({ "arduino", "raw" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
-  make_entry({ "arduino", "get" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
-  make_entry({ "arduino", "put" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
-  make_entry({ "arduino", "delete" }, call("board_send_command"), _("Board send command"), 50).sysauth = rest_api_sysauth
 
-  make_entry({ "arduino", "avr" }, call("board_plain_socket"), _("Board plain socket"), 50).sysauth = rest_api_sysauth
+  --storage api
+  local data_api = node("data")
+  data_api.sysauth = rest_api_sysauth
+  data_api.sysauth_authenticator = webpanel.sysauth_authenticator
+  make_entry({ "data", "get" }, call("storage_send_request"), _("Storage send request"), 50).sysauth = rest_api_sysauth
+  make_entry({ "data", "put" }, call("storage_send_request"), _("Storage send request"), 50).sysauth = rest_api_sysauth
+  make_entry({ "data", "delete" }, call("storage_send_request"), _("Storage send request"), 50).sysauth = rest_api_sysauth
+
+  --plain socket endpoint
+  local plain_socket_endpoint = make_entry({ "arduino" }, call("board_plain_socket"), _("Board plain socket"), 50)
+  plain_socket_endpoint.sysauth = rest_api_sysauth
+  plain_socket_endpoint.sysauth_authenticator = webpanel.sysauth_authenticator
 end
 
 function go_to_homepage()
@@ -194,7 +206,7 @@ function homepage()
   local ifnames = {}
   for i, v in ipairs(network) do
     local ifname = luci.util.trim(string.split(network[i], " ")[1])
-    if not_empty(ifname) then
+    if not_nil_or_empty(ifname) then
       table.insert(ifnames, ifname)
     end
   end
@@ -302,7 +314,7 @@ function config_post()
   --uci:load("dhcp")
   uci:load("arduino")
 
-  if not_empty(params["password"]) then
+  if not_nil_or_empty(params["password"]) then
     local password = params["password"]
     luci.sys.user.setpasswd("root", password)
 
@@ -433,11 +445,6 @@ function toogle_rest_api_security()
   go_to_homepage()
 end
 
-function ready()
-  luci.http.status(200)
-  return
-end
-
 local function build_bridge_request_digital_analog(command, pin, padded_pin, value)
   local data = { command, "/", padded_pin };
 
@@ -466,56 +473,24 @@ end
 
 local function build_bridge_request(command, params)
 
-  if command == "digital" or command == "analog" or command == "mode" then
-    local pin = tonumber(params[1])
-
-    if not pin then
-      return nil
-    end
-
-    local padded_pin = string.format("%02d", pin)
-
-    if command == "digital" or command == "analog" then
-      return build_bridge_request_digital_analog(command, pin, padded_pin, tonumber(params[2]))
-    else
-      if params[2] ~= "output" and params[2] ~= "input" then
-        return nil
-      end
-
-      local data = { "mode/", padded_pin, "/", params[2] }
-      local bridge_request = {
-        command = "raw",
-        data = table.concat(data)
-      }
-      return bridge_request
-    end
-  end
-
-  local bridge_request = {}
-
-  if command == "raw" then
-    bridge_request["command"] = "raw"
-    bridge_request["data"] = table.concat(params, "/")
-    return bridge_request
-  end
+  local bridge_request = {
+    command = command
+  }
 
   if command == "get" then
-    bridge_request["command"] = command
-    if not_empty(params[1]) then
+    if not_nil_or_empty(params[1]) then
       bridge_request["key"] = params[1]
     end
     return bridge_request
   end
 
-  if command == "put" and not_empty(params[1]) and params[2] then
-    bridge_request["command"] = command
+  if command == "put" and not_nil_or_empty(params[1]) and params[2] then
     bridge_request["key"] = params[1]
     bridge_request["value"] = params[2]
     return bridge_request
   end
 
-  if command == "delete" and not_empty(params[1]) then
-    bridge_request["command"] = command
+  if command == "delete" and not_nil_or_empty(params[1]) then
     bridge_request["key"] = params[1]
     return bridge_request
   end
@@ -523,8 +498,22 @@ local function build_bridge_request(command, params)
   return nil
 end
 
-function board_send_command()
+local function extract_jsonp_param(query_string)
+  if not not_nil_or_empty(query_string) then
+    return nil
+  end
+
+  local qs_parts = string.split(query_string, "&")
+  for idx, value in ipairs(qs_parts) do
+    if string.find(value, "jsonp") == 1 then
+      return string.sub(value, string.find(value, "=") + 1)
+    end
+  end
+end
+
+function storage_send_request()
   local method = luci.http.getenv("REQUEST_METHOD")
+  local jsonp_callback = extract_jsonp_param(luci.http.getenv("QUERY_STRING"))
   local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
   local command = parts[3]
   if not command or command == "" then
@@ -533,14 +522,11 @@ function board_send_command()
   end
   local params = {}
   for idx, param in ipairs(parts) do
-    if idx > 3 and not_empty(param) then
+    if idx > 3 and not_nil_or_empty(param) then
       table.insert(params, param)
     end
   end
 
-  local bridge_request = {
-    command = command
-  }
   -- TODO check method?
   local bridge_request = build_bridge_request(command, params)
   if not bridge_request then
@@ -556,55 +542,44 @@ function board_send_command()
     return
   end
 
-  sock:setsockopt("socket", "sndtimeo", 5)
-  sock:setsockopt("socket", "rcvtimeo", 5)
+  sock:setopt("socket", "sndtimeo", 5)
+  sock:setopt("socket", "rcvtimeo", 5)
+  sock:setopt("tcp", "nodelay", "1")
 
   local json = require("luci.json")
 
   sock:write(json.encode(bridge_request))
   sock:writeall("\n")
 
-  local response_text = {}
-  while true do
-    local bytes = sock:recv(4096)
-    if bytes and #bytes > 0 then
-      table.insert(response_text, bytes)
-    end
+  local response_text = sock:readall()
+  sock:close()
 
-    if #response_text == 0 then
-      luci.http.status(200)
-      sock:close()
-      return
-    end
-
-    local json_response = json.decode(table.concat(response_text))
-    if json_response then
+  local json_response = json.decode(response_text)
+  if json_response then
+    luci.http.status(200)
+    if jsonp_callback then
+      luci.http.prepare_content("application/javascript")
+      luci.http.write(jsonp_callback)
+      luci.http.write("(")
+      luci.http.write_json(json.encode(json_response))
+      luci.http.write(");")
+    else
       luci.http.prepare_content("application/json")
-      luci.http.status(200)
       luci.http.write(json.encode(json_response))
-      sock:close()
-      return
     end
-
-    if not bytes or #response_text == 0 then
-      http_error(500, "Empty response")
-      sock:close()
-      return
-    end
+    return
   end
 
-  sock:close()
+  http_error(500, "Empty response")
 end
 
 function board_plain_socket()
-  local function to_key_value(s)
-    local parts = luci.util.split(s, ":")
-    parts[1] = luci.util.trim(parts[1])
-    parts[2] = luci.util.trim(parts[2])
-    return parts[1], parts[2]
-  end
+  local function send_response(response_text, jsonp_callback)
+    if not response_text then
+      luci.http.status(500)
+      return
+    end
 
-  local function send_response(response_text)
     local rows = luci.util.split(response_text, "\r\n")
     if #rows == 1 or string.find(rows[1], "Status") ~= 1 then
       luci.http.prepare_content("text/plain")
@@ -614,6 +589,7 @@ function board_plain_socket()
     end
 
     local body_start_at_idx = -1
+    local content_type = "text/plain"
     for idx, row in ipairs(rows) do
       if row == "" then
         body_start_at_idx = idx
@@ -624,20 +600,32 @@ function board_plain_socket()
       if string.lower(key) == "status" then
         luci.http.status(tonumber(value))
       elseif string.lower(key) == "content-type" then
-        luci.http.prepare_content(value)
+        content_type = value
       else
         luci.http.header(key, value)
       end
     end
 
-    luci.http.write(table.concat(rows, "\r\n", body_start_at_idx + 1))
+    local response_body = table.concat(rows, "\r\n", body_start_at_idx + 1)
+    if content_type == "application/json" and jsonp_callback then
+      local json = require("luci.json")
+      luci.http.prepare_content("application/javascript")
+      luci.http.write(jsonp_callback)
+      luci.http.write("(")
+      luci.http.write_json(json.encode(json.decode(response_body)))
+      luci.http.write(");")
+    else
+      luci.http.prepare_content(content_type)
+      luci.http.write(response_body)
+    end
   end
 
   local method = luci.http.getenv("REQUEST_METHOD")
+  local jsonp_callback = extract_jsonp_param(luci.http.getenv("QUERY_STRING"))
   local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
   local params = {}
   for idx, param in ipairs(parts) do
-    if idx > 3 and not_empty(param) then
+    if idx > 2 and not_nil_or_empty(param) then
       table.insert(params, param)
     end
   end
@@ -652,24 +640,15 @@ function board_plain_socket()
     return
   end
 
-  sock:setsockopt("socket", "sndtimeo", 5)
-  sock:setsockopt("socket", "rcvtimeo", 5)
+  sock:setopt("socket", "sndtimeo", 5)
+  sock:setopt("socket", "rcvtimeo", 5)
+  sock:setopt("tcp", "nodelay", 1)
 
   sock:write(params)
   sock:writeall("\r\n")
 
-  local response_text = {}
-  while true do
-    local bytes = sock:recv(4096)
-
-    if not bytes or #bytes == 0 then
-      send_response(table.concat(response_text))
-      sock:close()
-      return
-    end
-
-    table.insert(response_text, bytes)
-  end
-
+  local response_text = sock:readall()
   sock:close()
+
+  send_response(response_text, jsonp_callback)
 end
