@@ -21,7 +21,7 @@ http.prepare_content("text/html; charset=utf-8")
   </div>
   <div id="content">
     <div class="wrapper">
-<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/arduino/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
+<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/webpanel/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
   <div id="error_container" class="hidden">
     <p>An error has occurred.</p>
   </div>
@@ -91,7 +91,7 @@ http.prepare_content("text/html; charset=utf-8")
       </label>
 
       <div class="input_container">
-	<input id="wifi.ssid" name="wifi.ssid" type="text" value="<%= wifi["ssid"] %>" maxlength="255">
+	<input id="wifi.ssid" name="wifi.ssid" type="text" value="<%= wifi["ssid"] %>" maxlength="32">
       </div>
     </li>
 
@@ -122,7 +122,7 @@ http.prepare_content("text/html; charset=utf-8")
       </label>
 
       <div class="input_container">
-	<input id="wifi.password" name="wifi.password" type="password" value="" maxlength="255"
+	<input id="wifi.password" name="wifi.password" type="password" value="" maxlength="63"
         <% if not wifi["encryption"] or wifi["encryption"] == "none" then %>
         disabled="true"
         <% end %>>
@@ -137,7 +137,7 @@ http.prepare_content("text/html; charset=utf-8")
 
   </ul>
 </form>
-      <form id="real_form" name="real_form" method="post" action="<%=pcdata(controller .. "/arduino/config")%>">
+      <form id="real_form" name="real_form" method="post" action="<%=pcdata(controller .. "/webpanel/config")%>">
         <input type="hidden" name="pgp_message" value=""/>
       </form>
     </div>

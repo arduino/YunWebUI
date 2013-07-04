@@ -46,11 +46,11 @@ Received <%= data["rx"] %>, trasmitted <%= data["tx"] %><br/>
 <br/>
 <% end %>
 
-<form method="get" action="<%= pcdata(controller .. '/arduino/config') %>">
+<form method="get" action="<%= pcdata(controller .. '/webpanel/config') %>">
   <ul>
     <li>
       <div class="input_container">
-        <input class="btTxt submit saveForm" type="submit" value="Configure" onclick="javascript:return goto('<%= pcdata(controller .. '/arduino/config') %>');">
+        <input class="btTxt submit saveForm" type="submit" value="Configure" onclick="javascript:return goto('<%= pcdata(controller .. '/webpanel/config') %>');">
       </div>
     </li>
   </ul>
@@ -63,7 +63,7 @@ A file named <%= update_file %> has been found on the SD card.<br/>
 Do you wish to use it to reset your Y&uacute;n &#20113;?<br/>
 <strong>ATTENTION!!</strong> You'll lose everything stored on the Y&uacute;n &#20113; and it will then look brand new! Back it up before proceeding!<br/>
 
-<form method="post" action="<%= pcdata(controller .. '/arduino/reset_board') %>">
+<form method="post" action="<%= pcdata(controller .. '/webpanel/reset_board') %>">
   <ul>
     <li>
       <div class="input_container">
@@ -88,7 +88,7 @@ There's been a problem last time I tried configuring wifi. Check the following l
       <% else %>
       REST API is open to everyone
       <% end %>
-      <form method="post" action="<%= pcdata(controller .. '/arduino/toogle_rest_api_security') %>">
+      <form method="post" action="<%= pcdata(controller .. '/webpanel/toogle_rest_api_security') %>">
         <ul>
           <li>
             <div class="input_container">
