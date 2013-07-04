@@ -196,7 +196,7 @@ function index()
 end
 
 function go_to_homepage()
-  luci.http.redirect(luci.dispatcher.build_url("arduino/homepage"))
+  luci.http.redirect(luci.dispatcher.build_url("webpanel/homepage"))
 end
 
 function homepage()
