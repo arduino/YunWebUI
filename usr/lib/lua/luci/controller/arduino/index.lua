@@ -165,12 +165,12 @@ function index()
   webpanel.sysauth_authenticator = "arduinoauth"
 
   make_entry({ "webpanel", "homepage" }, call("homepage"), _("Arduino Web Panel"), 10)
-  make_entry({ "webpanel", "go_to_homepage" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
-  make_entry({ "webpanel", "set_password" }, call("go_to_homepage"), _("Arduino Web Panel"), 10)
-  make_entry({ "webpanel", "config" }, call("config"), _("Configure board"), 20)
-  make_entry({ "webpanel", "rebooting" }, template("arduino/rebooting"), _("Rebooting view"), 20)
-  make_entry({ "webpanel", "reset_board" }, call("reset_board"), _("Reset board"), 30)
-  make_entry({ "webpanel", "toogle_rest_api_security" }, call("toogle_rest_api_security"), _("Toogle REST API security"), 50)
+  make_entry({ "webpanel", "go_to_homepage" }, call("go_to_homepage"), nil)
+  make_entry({ "webpanel", "set_password" }, call("go_to_homepage"), nil)
+  make_entry({ "webpanel", "config" }, call("config"), nil)
+  make_entry({ "webpanel", "rebooting" }, template("arduino/rebooting"), nil)
+  make_entry({ "webpanel", "reset_board" }, call("reset_board"), nil)
+  make_entry({ "webpanel", "toogle_rest_api_security" }, call("toogle_rest_api_security"), nil)
 
   --api security level
   local uci = luci.model.uci.cursor()
@@ -185,12 +185,12 @@ function index()
   local data_api = node("data")
   data_api.sysauth = rest_api_sysauth
   data_api.sysauth_authenticator = webpanel.sysauth_authenticator
-  make_entry({ "data", "get" }, call("storage_send_request"), _("Storage send request"), 50).sysauth = rest_api_sysauth
-  make_entry({ "data", "put" }, call("storage_send_request"), _("Storage send request"), 50).sysauth = rest_api_sysauth
-  make_entry({ "data", "delete" }, call("storage_send_request"), _("Storage send request"), 50).sysauth = rest_api_sysauth
+  make_entry({ "data", "get" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
+  make_entry({ "data", "put" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
+  make_entry({ "data", "delete" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
 
   --plain socket endpoint
-  local plain_socket_endpoint = make_entry({ "arduino" }, call("board_plain_socket"), _("Board plain socket"), 50)
+  local plain_socket_endpoint = make_entry({ "arduino" }, call("board_plain_socket"), nil)
   plain_socket_endpoint.sysauth = rest_api_sysauth
   plain_socket_endpoint.sysauth_authenticator = webpanel.sysauth_authenticator
 end
