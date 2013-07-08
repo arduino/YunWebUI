@@ -511,18 +511,27 @@ local function extract_jsonp_param(query_string)
   end
 end
 
+local function parts_after(url_part)
+  local url = luci.http.getenv("PATH_INFO")
+  local url_after_part = string.find(url, "/", string.find(url, url_part) + 1)
+  if not url_after_part then
+    return {}
+  end
+  return luci.util.split(string.sub(url, url_after_part + 1), "/")
+end
+
 function storage_send_request()
   local method = luci.http.getenv("REQUEST_METHOD")
   local jsonp_callback = extract_jsonp_param(luci.http.getenv("QUERY_STRING"))
-  local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
-  local command = parts[3]
+  local parts = parts_after("data")
+  local command = parts[1]
   if not command or command == "" then
     http_error(404)
     return
   end
   local params = {}
   for idx, param in ipairs(parts) do
-    if idx > 3 and not_nil_or_empty(param) then
+    if idx > 1 and not_nil_or_empty(param) then
       table.insert(params, param)
     end
   end
@@ -544,33 +553,45 @@ function storage_send_request()
 
   sock:setopt("socket", "sndtimeo", 5)
   sock:setopt("socket", "rcvtimeo", 5)
-  sock:setopt("tcp", "nodelay", "1")
+  sock:setopt("tcp", "nodelay", 1)
 
   local json = require("luci.json")
 
   sock:write(json.encode(bridge_request))
   sock:writeall("\n")
 
-  local response_text = sock:readall()
-  sock:close()
-
-  local json_response = json.decode(response_text)
-  if json_response then
-    luci.http.status(200)
-    if jsonp_callback then
-      luci.http.prepare_content("application/javascript")
-      luci.http.write(jsonp_callback)
-      luci.http.write("(")
-      luci.http.write_json(json.encode(json_response))
-      luci.http.write(");")
-    else
-      luci.http.prepare_content("application/json")
-      luci.http.write(json.encode(json_response))
+  local response_text = {}
+  while true do
+    local bytes = sock:recv(4096)
+    if bytes and #bytes > 0 then
+      table.insert(response_text, bytes)
     end
-    return
+
+    local json_response = json.decode(table.concat(response_text))
+    if json_response then
+      sock:close()
+      luci.http.status(200)
+      if jsonp_callback then
+        luci.http.prepare_content("application/javascript")
+        luci.http.write(jsonp_callback)
+        luci.http.write("(")
+        luci.http.write_json(json.encode(json_response))
+        luci.http.write(");")
+      else
+        luci.http.prepare_content("application/json")
+        luci.http.write(json.encode(json_response))
+      end
+      return
+    end
+
+    if not bytes or #response_text == 0 then
+      sock:close()
+      http_error(500, "Empty response")
+      return
+    end
   end
 
-  http_error(500, "Empty response")
+  sock:close()
 end
 
 function board_plain_socket()
@@ -622,12 +643,17 @@ function board_plain_socket()
 
   local method = luci.http.getenv("REQUEST_METHOD")
   local jsonp_callback = extract_jsonp_param(luci.http.getenv("QUERY_STRING"))
-  local parts = luci.util.split(luci.http.getenv("PATH_INFO"), "/")
+  local parts = parts_after("arduino")
   local params = {}
   for idx, param in ipairs(parts) do
-    if idx > 2 and not_nil_or_empty(param) then
+    if not_nil_or_empty(param) then
       table.insert(params, param)
     end
+  end
+
+  if #params == 0 then
+    http_error(404)
+    return
   end
 
   params = table.concat(params, "/")
