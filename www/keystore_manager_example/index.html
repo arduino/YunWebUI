@@ -23,16 +23,20 @@
 <div style="background: none repeat scroll 0 0 #F5F5F5">
   <div style="padding: 2em;">
     <div id="warning" style="display: none;">
-      <span style="color: #c37676;">You are using HTTP. We suggest to use HTTPS to protect your Y&uacute;n password<br><br></span>
+      <span style="color: #c37676;">You are using HTTP. We suggest to use HTTPS to protect your Y&uacute;n<br><br></span>
     </div>
 
-    Password: <input id="password" type="password" value="arduino">
+    Password: <input id="password" type="password" value="">
     <br/>
     <br/>
 
     <div id="storage">
       Retrieving storage values...
     </div>
+    <br/>
+
+    <input id="refresh" type="button" value="Reload storage!">
+    <br/>
     <br/>
 
     <div>
@@ -49,7 +53,7 @@
       </table>
     </div>
 
-    <input id="update" type="button" value="Update!">
+    <input id="update" type="button" value="Update or insert new key/value pair">
   </div>
 </div>
 <script type="text/javascript" src="zepto.min.js"></script>
@@ -62,6 +66,14 @@
     var tok = user + ':' + (password || "arduino");
     var hash = btoa(tok);
     return "Basic " + hash;
+  }
+
+  function add_basic_auth_headers_if_password(ajax_call_options, password) {
+    if (password && password !== "") {
+      ajax_call_options.headers = {
+        Authorization: util_make_basic_auth("root", password)
+      }
+    }
   }
 
   function error_handler(error) {
@@ -80,39 +92,36 @@
   }
 
   function storage_retrieve_all(callback) {
-    $.ajax({
-      url: "/arduino/get",
+    var ajax_call_options = {
+      url: "/data/get",
       timeout: 10000,
-      headers: {
-        Authorization: util_make_basic_auth("root", $("#password").val())
-      },
       success: callback,
       error: error_handler
-    })
+    };
+    add_basic_auth_headers_if_password(ajax_call_options, $("#password").val());
+    $.ajax(ajax_call_options)
   }
 
   function storage_delete_by_key(key, callback) {
-    $.ajax({
-      url: "/arduino/delete/" + encodeURIComponent(key),
+    var ajax_call_options = {
+      url: "/data/delete/" + encodeURIComponent(key),
       timeout: 10000,
-      headers: {
-        Authorization: util_make_basic_auth("root", $("#password").val())
-      },
       success: callback,
       error: error_handler
-    })
+    };
+    add_basic_auth_headers_if_password(ajax_call_options, $("#password").val());
+    $.ajax(ajax_call_options)
   }
 
   function storage_update_key_value(key, value, callback) {
-    $.ajax({
-      url: "/arduino/put/" + encodeURIComponent(key) + "/" + encodeURIComponent(value),
+    var ajax_call_options = {
+      url: "/data/put/" + encodeURIComponent(key) + "/" + encodeURIComponent(value),
       timeout: 10000,
-      headers: {
-        Authorization: util_make_basic_auth("root", $("#password").val())
-      },
       success: callback,
       error: error_handler
-    })
+    };
+    add_basic_auth_headers_if_password(ajax_call_options, $("#password").val());
+    $.ajax(ajax_call_options)
   }
 
   function repaint_storage(storage) {
@@ -161,8 +170,6 @@
         key: new_storage_key,
         value: new_storage_value
       });
-      $("#new_storage_key").val("");
-      $("#new_storage_value").val("");
     }
 
     var done = 0;
@@ -185,6 +192,10 @@
         $("#storage").html(please_wait_message);
         storage_retrieve_all(repaint_storage);
       })
+    });
+    $("#refresh").on("click", function() {
+      $("#storage").html(please_wait_message);
+      storage_retrieve_all(repaint_storage);
     });
 
     if (window.location.protocol === "http:") {
