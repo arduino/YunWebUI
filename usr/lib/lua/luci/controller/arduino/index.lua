@@ -271,7 +271,9 @@ local function csv_to_array(text)
   local lines = string.split(text, "\n")
   for i, line in ipairs(lines) do
     line_parts = string.split(line, "\t")
-    table.insert(array, { label = line_parts[1], timezone = line_parts[2], code = line_parts[3] })
+    if line_parts[1] and line_parts[2] and line_parts[3] then
+      table.insert(array, { label = line_parts[1], timezone = line_parts[2], code = line_parts[3] })
+    end
   end
   return array
 end
