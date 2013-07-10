@@ -143,12 +143,14 @@ function index()
       end
     end
 
-    if basic_auth and basic_auth ~= "" then
-      luci.controller.arduino.index.http_error(403)
-    else
-      luci.http.status(403)
+    local url = luci.http.getenv("PATH_INFO")
+    local is_webpanel = string.find(luci.http.getenv("PATH_INFO"), "/webpanel")
+
+    if is_webpanel then
       local gpg_pub_key_ascii = luci.controller.arduino.index.read_gpg_pub_key()
       luci.template.render("arduino/set_password", { duser = default, fuser = user, pub_key = gpg_pub_key_ascii, login_failed = dec_params ~= nil })
+    else
+      luci.http.status(403)
     end
 
     return false
@@ -529,7 +531,7 @@ function storage_send_request()
   local parts = parts_after("data")
   local command = parts[1]
   if not command or command == "" then
-    http_error(404)
+    luci.http.status(404)
     return
   end
   local params = {}
@@ -542,7 +544,7 @@ function storage_send_request()
   -- TODO check method?
   local bridge_request = build_bridge_request(command, params)
   if not bridge_request then
-    http_error(404)
+    luci.http.status(403)
     return
   end
 
@@ -655,7 +657,7 @@ function board_plain_socket()
   end
 
   if #params == 0 then
-    http_error(404)
+    luci.http.status(404)
     return
   end
 
