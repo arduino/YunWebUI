@@ -72,7 +72,8 @@ http.prepare_content("text/html; charset=utf-8")
     <% if last_log then %>
     <div class="wrapper divide">
       <div id="log_container">
-        <p>There's been a problem last time I tried configuring wireless network.<br/>Check the following log:</p>
+        <p>There was a problem last time I tried configuring wireless network. You can reset your Y&uacute;n to default network settings by holding the reset button for 5 seconds.</p>
+        <p>Check the following log for details of what went wrong:</p>
         <textarea rows="20" readonly="readonly"><% for i,line in pairs(last_log) do %><%= line %>
 <% end %></textarea>
         <script language="javascript">document.getElementsByTagName("textarea")[0].scrollTop = 99999;</script>
@@ -84,7 +85,7 @@ http.prepare_content("text/html; charset=utf-8")
     <div class="wrapper divide">
       <p>A file named <strong><%= update_file %></strong> has been found on the SD card.<br />Do you wish to use it to reset your Y&uacute;n?</p>
       <p class="highlight alert">
-        <strong>ATTENTION!!</strong><br/>You'll lose everything stored on the Y&uacute;n and it will then look brand new!<br/>Back it up before proceeding!
+        <strong>ATTENTION!!</strong><br/>This will erase everything stored on the Y&uacute;n and update the whole system! Back up any custom files on your Y&uacute;n before proceeding!
       </p>
       <p>
       <form method="post" action="<%= pcdata(controller .. '/webpanel/reset_board') %>">

@@ -21,7 +21,7 @@ http.prepare_content("text/html; charset=utf-8")
   </div>
   <div id="content">
     <div class="wrapper divide">
-      <p>This is the Y&uacute;n Board configuration panel, if you can't find what you need, try the <a href="<%= pcdata(controller .. '/') %>" title="advanced configuration panel">advanced configuration panel (luci)</a></p>
+      <p>For more advanced network configuration features, see the <a href="<%= pcdata(controller .. '/') %>" title="advanced configuration panel">advanced configuration panel (luci)</a></p>
     </div>
     <div class="wrapper divide" id="yun_config">
       <form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/webpanel/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
@@ -162,6 +162,6 @@ http.prepare_content("text/html; charset=utf-8")
 <script language="javascript">
   var pub_key = "<%= pub_key %>";
 </script>
-<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.js"></script>
+<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.ugly.js"></script>
 </body>
 </html>
