@@ -24,7 +24,7 @@ http.prepare_content("text/html; charset=utf-8")
       <p>For more advanced network configuration features, see the <a href="<%= pcdata(controller .. '/') %>" title="advanced configuration panel">advanced configuration panel (luci)</a></p>
     </div>
     <div class="wrapper divide" id="yun_config">
-      <form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/webpanel/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
+      <form id="form1" name="form1" method="post" onreset="javascript:formReset(this);" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/webpanel/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
 
         <div id="error_response" class="hidden">
           <p class="alert">An error has occurred.</p>

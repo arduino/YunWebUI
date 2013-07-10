@@ -55,6 +55,13 @@ function formCheck(form) {
   return !errors;
 }
 
+function formReset() {
+  setTimeout(function() {
+    grey_out_wifi_conf(!document.getElementById("wificheck").checked);
+    onchange_security(document.getElementById("wifi_encryption"));
+  }, 100);
+}
+
 function errorHandler(el, er, msg) {
   el.className = "error";
   er.className = "visible";
