@@ -8,7 +8,7 @@ function formCheck(form) {
   var password = form["password"];
   var errors;
 
-  var errContainer = document.getElementById("error_container");
+  var errContainer = document.getElementById("error_response");
 
   errContainer.innerHTML = "";
   errors = false;
@@ -39,7 +39,7 @@ function formCheck(form) {
   }
 
   if (nullOrEmpty(hostname.value)) {
-    errorHandler(hostname, errContainer, "Please choose a name for your Yún 云");
+    errorHandler(hostname, errContainer, "Please choose a name for your Y&uacute;n");
     errors = true;
 
   } else if (hostname.value.match(/[^a-zA-Z0-9_]/)) {
@@ -67,15 +67,14 @@ function goto(href) {
 }
 
 function onchange_security(select) {
-  var wifi_password_asterisk = document.getElementById("req_3");
-  var wifi_password = document.getElementById("wifi.password");
+  var wifi_pass_container = document.getElementById("wifi_password_container");
+  var wifi_pass = document.getElementById("wifi_password");
   if (select.value == "none") {
-    wifi_password_asterisk.setAttribute("style", "visibility: hidden");
-    wifi_password.disabled = true;
+    wifi_pass_container.setAttribute("class", "hidden");
   } else {
-    wifi_password_asterisk.removeAttribute("style");
-    wifi_password.disabled = false;
-    wifi_password.focus();
+    wifi_pass_container.removeAttribute("class");
+    wifi_pass.value = "";
+    wifi_pass.focus();
   }
 }
 
@@ -101,20 +100,23 @@ function send_post(url, form, real_form_id) {
 }
 
 function grey_out_wifi_conf(disabled) {
-  var ids = ["wifi.ssid", "wifi.encryption", "wifi.password"];
-  for (var idx in ids) {
-    document.getElementById(ids[idx]).disabled = disabled;
-  }
-  var style = "";
   if (disabled) {
-    style = "color: #999999;"
+    document.getElementById("wifi_container").setAttribute("class", "disabled");
+  } else {
+    document.getElementById("wifi_container").setAttribute("class", "");
   }
-  document.getElementById("wifi.parameters").setAttribute("style", style);
-  for (var idx in ids) {
-    document.getElementById(ids[idx] + ".label").setAttribute("style", style);
-  }
-  if (!disabled) {
-    onchange_security(document.getElementById("wifi.encryption"))
+  document.getElementById("wifi_password").disabled = disabled;
+  document.getElementById("wifi_ssid").disabled = disabled;
+  document.getElementById("wifi_encryption").disabled = disabled;
+}
+
+function matchpassword() {
+  var confpassword = document.getElementById("confpassword");
+  var password = document.getElementById("password");
+  if (confpassword.value == password.value) {
+    document.getElementById("pass_mismatch").setAttribute("class", "hidden error_container input_message");
+  } else {
+    document.getElementById("pass_mismatch").setAttribute("class", "error_container input_message");
   }
 }
 
@@ -122,10 +124,24 @@ document.body.onload = function() {
   if (document.getElementById("username")) {
     document.getElementById("password").focus();
   }
-  if (document.getElementById("wifi.configure")) {
-    document.getElementById("wifi.configure").onclick = function(event) {
+  if (document.getElementById("wificheck")) {
+    document.getElementById("wificheck").onclick = function(event) {
       grey_out_wifi_conf(!event.target.checked);
     }
   }
+  if (document.getElementById("wifi_encryption")) {
+    document.getElementById("wifi_encryption").onchange = function(event) {
+      onchange_security(event.target);
+    }
+  }
+  if (document.getElementById("confpassword")) {
+    document.getElementById("confpassword").onkeyup = function(event) {
+      matchpassword(event.target);
+    };
+    document.getElementById("password").onkeyup = function(event) {
+      matchpassword(event.target);
+    }
+  }
+
 };
 

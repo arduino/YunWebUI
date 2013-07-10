@@ -15,131 +15,143 @@ http.prepare_content("text/html; charset=utf-8")
   <div id="header">
     <div class="wrapper">
       <h1>Y&uacute;n &#20113;</h1>
-
-      <div id="logo"><img src="<%= resource %>/arduino/logo.png" alt="Y&uacute;n &#20113;"/></div>
+      <div id="logo"><a href="/"><img src="<%= resource %>/arduino/logo.png" alt="Y&uacute;n"/></a></div>
+      <div id="logophone"><a href="/"><img src="<%= resource %>/arduino/logo_phone.png" alt="Y&uacute;n"/></a></div>
     </div>
   </div>
   <div id="content">
-    <div class="wrapper">
-<form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/webpanel/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
-  <div id="error_container" class="hidden">
-    <p>An error has occurred.</p>
-  </div>
-  <ul>
-    <li>
-      <label class="title">
-        Your Y&uacute;n &#20113;
-      </label>
-      <br/>
-    </li>
+    <div class="wrapper divide">
+      <p>This is the Y&uacute;n Board configuration panel, if you can't find what you need, try the <a href="<%= pcdata(controller .. '/') %>" title="advanced configuration panel">advanced configuration panel (luci)</a></p>
+    </div>
+    <div class="wrapper divide" id="yun_config">
+      <form id="form1" name="form1" method="post" onsubmit="javascript:return formCheck(this) && send_post('<%=pcdata(controller .. "/webpanel/config")%>', this, 'real_form', 'wifi.ssid', 'wifi.encryption', 'wifi.password', 'hostname', 'timezone_desc', 'password');" action="#">
 
-    <li>
-      <label class="desc" for="hostname">
-        Y&uacute;n &#20113; name <span class="req">*</span>
-      </label>
+        <div id="error_response" class="hidden">
+          <p class="alert">An error has occurred.</p>
+        </div>
+        <ul>
+          <li>
+            <label class="title">Y&uacute;n board configuration <a class="info_link" href="link_to_reference"><img src="<%= resource %>/arduino/info.png" /></a></label>
+          </li>
+          <li>
+            <label class="desc" for="hostname">
+              Y&uacute;n name <span class="req">*</span>
+            </label>
 
+            <div class="input_container">
+              <input id="hostname" name="hostname" type="text" value="<%= hostname %>" maxlength="255">
+            </div>
+          </li>
+
+          <li>
+            <label class="desc" for="password">
+              Password
+            </label>
+
+            <div class="input_container">
+              <input id="password" name="password" type="password" maxlength="255">
+            </div>
+          </li>
+          <li>
+            <label class="desc" for="confpassword">
+              Confirm Password
+            </label>
+
+            <div class="input_container">
+              <input id="confpassword" name="confpassword" type="password" maxlength="255">
+              <p id="pass_mismatch" class="hidden error_container input_message">Password mismatch</p>
+            </div>
+          </li>
+
+          <li>
+            <label class="desc" for="timezone_desc">
+              Timezone <span class="req">*</span>
+            </label>
+
+            <div class="input_container">
+              <select id="timezone_desc" name="timezone_desc">
+                <% for k, tz in ipairs(timezones_wifi_reg_domains) do %>
+                <option value="<%= tz["label"] %>"
+                <%if timezone_desc == tz["label"] then %>
+                selected="selected"
+                <% end %>
+                ><%= tz["label"] %></option>
+                <% end %>
+              </select>
+            </div>
+          </li>
+        </ul>
+    </div>
+    <div class="wrapper divide">
+      <ul>
+        <li>
+          <label class="title">Wireless parameters <a class="info_link" href="link_to_reference"><img src="<%= resource %>/arduino/info.png" /></a></label>
+        </li>
+
+        <li>
+          <label for="wificheck" class="left">Configure a wireless network</label><div class="input_container checkbox_container"><input checked="checked" type="checkbox" name="wifi" id="wificheck"/></div>
+        </li>
+
+        <div id="wifi_container" class="">
+          <li>
+            <label class="desc" for="wifi_ssid">Wireless name <span class="req">*</span></label>
+
+            <div class="input_container">
+              <input id="wifi_ssid" name="wifi.ssid" type="text" value="<%= wifi["ssid"] %>" maxlength="255">
+            </div>
+          </li>
+
+          <li>
+            <label class="desc left" for="wifi_encryption">Security</label>
+            <div class="input_container">
+              <select id="wifi_encryption" name="wifi.encryption">
+                <% for k, encryption in ipairs(encryptions) do %>
+                <option value="<%= encryption["code"] %>"
+                <% if wifi["encryption"] == encryption["code"] then %>
+                selected="selected"
+                <% end %>
+                ><%= encryption["label"] %></option>
+                <% end %>
+              </select>
+            </div>
+          </li>
+          <li id="wifi_password_container" <% if not wifi["encryption"] or wifi["encryption"] == "none" then %>class="hidden"<% end %>>
+            <label class="desc" for="wifi_password">Password <span id="req_3" class="req">*</span></label>
+            <div class="input_container">
+              <input id="wifi_password" name="wifi.password" type="password" value="" maxlength="63">
+            </div>
+          </li>
+        </div>
+      </ul>
+
+    </div>
+    <div class="wrapper divide">
       <div class="input_container">
-        <input id="hostname" name="hostname" type="text" value="<%= hostname %>" maxlength="255">
+        <input id="discard" class="btTxt submit saveForm btn" type="reset" value="Discard">
+        <input id="conf_rest_btn" class="btTxt submit saveForm" type="submit" value="Configure &amp; Restart">
       </div>
-    </li>
 
-    <li>
-      <label class="desc" for="password">
-        Password
-      </label>
+      </form>
 
-      <div class="input_container">
-        <input id="password" name="password" type="password" maxlength="255">
-      </div>
-    </li>
-
-    <li>
-      <label class="desc" for="timezone_desc">
-        Country: <span class="req">*</span>
-      </label>
-
-      <div class="input_container">
-        <select id="timezone_desc" name="timezone_desc">
-          <% for k, tz in ipairs(timezones_wifi_reg_domains) do %>
-          <option value="<%= tz["label"] %>"
-          <%if timezone_desc == tz["label"] then %>
-          selected="selected"
-          <% end %>
-          ><%= tz["label"] %></option>
-          <% end %>
-        </select>
-      </div>
-    </li>
-
-    <li>
-      <label class="desc">
-	      <input type="checkbox" name="wifi.configure" id="wifi.configure" checked="true"/>
-      </label>
-      <div class="separator-like-label">I want to configure my WiFi network</div>
-    </li>
-
-    <li>
-      <label id="wifi.parameters" class="title">
-	WiFi parameters
-      </label>
-      <br/>
-    </li>
-
-    <li>
-      <label class="desc" id="wifi.ssid.label" for="wifi.ssid">
-	WiFi name <span class="req">*</span>
-      </label>
-
-      <div class="input_container">
-	<input id="wifi.ssid" name="wifi.ssid" type="text" value="<%= wifi["ssid"] %>" maxlength="32">
-      </div>
-    </li>
-
-    <li>
-      <label class="desc" id="wifi.encryption.label" for="wifi.encryption">
-	Security <span class="req">*</span>
-      </label>
-
-      <div class="input_container">
-	<select id="wifi.encryption" name="wifi.encryption" onchange="javascript:onchange_security(this);">
-          <% for k, encryption in ipairs(encryptions) do %>
-	  <option value="<%= encryption["code"] %>"
-	  <% if wifi["encryption"] == encryption["code"] then %>
-	  selected="selected"
-	  <% end %>
-	  ><%= encryption["label"] %></option>
-	  <% end %>
-	</select>
-      </div>
-    </li>
-
-    <li>
-      <label class="desc" id="wifi.password.label" for="wifi.password">
-	Password <span id="req_3" class="req"
-        <% if not wifi["encryption"] or wifi["encryption"] == "none" then %>
-        style="visibility:hidden;"
-        <% end %>>*</span>
-      </label>
-
-      <div class="input_container">
-	<input id="wifi.password" name="wifi.password" type="password" value="" maxlength="63"
-        <% if not wifi["encryption"] or wifi["encryption"] == "none" then %>
-        disabled="true"
-        <% end %>>
-      </div>
-    </li>
-
-    <li>
-      <div class="input_container">
-	<input class="btTxt submit saveForm" type="submit" value="Configure &amp; Restart">
-      </div>
-    </li>
-
-  </ul>
-</form>
       <form id="real_form" name="real_form" method="post" action="<%=pcdata(controller .. "/webpanel/config")%>">
         <input type="hidden" name="pgp_message" value=""/>
       </form>
+    </div>
+
+    <div class="wrapper" id="rest_api">
+      <ul>
+        <li>
+          <label class="title">Rest API access <a class="info_link" href="link_to_reference"><img src="<%= resource %>/arduino/info.png" /></a></label>
+        </li>
+        <li>
+          <label for="restopen">Rest API access</label>
+          <div class="input_container radio_container">
+            <input type="radio" name="rest" id="restopen" checked="checked" value="open"><label for="restopen">Open</label>
+            <input type="radio" name="rest" id="restpass" value="female"><label for="restpass">With password</label>
+            <p class="input_message">lorem ipsum</p>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
   <!-- #content -->
@@ -150,6 +162,6 @@ http.prepare_content("text/html; charset=utf-8")
 <script language="javascript">
   var pub_key = "<%= pub_key %>";
 </script>
-<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.ugly.js"></script>
+<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.js"></script>
 </body>
 </html>

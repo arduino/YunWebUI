@@ -7,7 +7,7 @@ http.prepare_content("text/html")
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
-  <link rel="stylesheet" type="text/css" href="<%= resource %>/arduino/style.ugly.css" />
+  <link rel="stylesheet" type="text/css" href="<%= resource %>/arduino/style.ugly.css"/>
   <title>Y&uacute;n &#20113;</title>
 </head>
 <body>
@@ -16,14 +16,20 @@ http.prepare_content("text/html")
     <div class="wrapper">
       <h1>Y&uacute;n &#20113;</h1>
 
-      <div id="logo"><img src="<%= resource %>/arduino/logo.png" alt="Y&uacute;n &#20113;"/></div>
+      <div id="logo"><a href="/"><img src="<%= resource %>/arduino/logo.png" alt="Y&uacute;n"/></a></div>
+      <div id="logophone"><a href="/"><img src="<%= resource %>/arduino/logo_phone.png" alt="Y&uacute;n"/></a></div>
     </div>
   </div>
   <div id="content">
-    <div class="wrapper">
-      I'm resetting.<br/><br/>
-      
-      Please wait until the led stops blinking, then connect your computer to the default WiFi network <strong><%= name %></strong>, and you'll find me there at <a href="http://arduino.local">http://arduino.local</a>.
+    <div class="wrapper divide">
+      <h2>I'm resetting.</h2>
+    </div>
+    <div class="wrapper divide img_container">
+      <p>Please wait until the led stops blinking, it will take 5 minutes to finish.</p>
+      <img src="<%= resource %>/arduino/restart-01.png"/>
+    </div>
+    <div class="wrapper divide">
+      <p>After the board has done, connect your computer to the default wireless network <strong><%= name %></strong>, and you'll find me there at <a href="http://arduino.local">http://arduino.local</a></p>
     </div>
   </div>
   <!-- #content -->
