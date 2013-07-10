@@ -309,10 +309,10 @@ input.submit.saveForm.green:active {
 a.info_link {
     display: inline-block;
     width: 15px;
-    padding: 0 5px;
     height: 15px;
     text-indent: -999em;
     color: transparent;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3QcKDQoet9HfnwAAAXpJREFUKM910z1rFUEchfHfXW8hBiyiBGwshDRKRIQUwjBTqI2N4EuTSgQtBAuxEL+HSBrtLIIKigiSCLLLgp1IGrmgwUIElSgiiQlEY/O/MazXU+3smWdm95yZnlDdtFDhMGZwBGNYxkvMlZyW6qZVclI3rV5AsBezOBvjDTzGAq7hAG7hZslpHVvwPtSY9FffSk7j8VUnMY9NPMOZktNaHztwrwNCv27aKSxhKt71cAK3cbFXN+1pPOqAv2OXFQww3fE/4lwfl0aAA7zHuwjsYIQ31DhmKhzzrz7hbsnpaoQ21vF34mgVq2xXhYT9ddP2cMpo7amwOsJYw1PswvH/wD8qvB5hfC45DbAbeYS/gTcV5kYYz+N5Oqpc78z5iicV7kSqQ/3CfN20/fj3D3jbgV+VnO5XJaeVqOtLGJtYjMqW8RCHtoO4MUxWyekFLkS/a5HwZByGKwF9jyN8ueS0uHUxSk7DmzWB6ziPiej3Z4T6ALMlp9Uh8we7uXY8dvUOjgAAAABJRU5ErkJggg==);
 }
 
 a.info_link img {
@@ -407,7 +407,7 @@ ul#wwwlist li, ul#wwwotherlist li {
 
 li.folder {
     padding-left: 2.5em;
-    background: url(folder.png) no-repeat;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAATCAYAAACUef2IAAAASUlEQVR42u3UoQ0AIAxE0S7AWIzEAjg0EkPCoIdENKlpT5BUfPvkFwCU+LC0DqNNgB/ugP0puK6DgDRcxkRACSecsBX9Ff+N/gIGNwu8iBIRGAAAAABJRU5ErkJggg==) no-repeat;
     line-height: 1.375em;
     margin-bottom: .875em;
 }
