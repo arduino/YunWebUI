@@ -327,7 +327,7 @@ function config_post()
     set_first(uci, "arduino", "arduino", "password", sha256.sha256(password))
   end
 
-  if params["hostname"] then
+  if not_nil_or_empty(params["hostname"]) then
     local hostname = string.gsub(params["hostname"], " ", "_")
     set_first(uci, "system", "system", "hostname", hostname)
   end
