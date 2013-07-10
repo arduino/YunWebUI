@@ -245,14 +245,9 @@ function homepage()
     end
   end
 
-  local uci = luci.model.uci.cursor()
-  uci:load("arduino")
-  local secure_rest_api = uci:get_first("arduino", "arduino", "secure_rest_api")
-
   local ctx = {
     hostname = luci.sys.hostname(),
-    ifaces = ifaces,
-    rest_api_is_secured = secure_rest_api == "true"
+    ifaces = ifaces
   }
 
   if file_exists("/last_dmesg_with_wifi_errors.log") then
@@ -293,6 +288,10 @@ function config_get()
   encryptions[3] = { code = "psk", label = "WPA" }
   encryptions[4] = { code = "psk2", label = "WPA2" }
 
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+  local rest_api_is_secured = uci:get_first("arduino", "arduino", "secure_rest_api") == "true"
+
   local ctx = {
     hostname = get_first(uci, "system", "system", "hostname"),
     timezone_desc = get_first(uci, "system", "system", "timezone_desc"),
@@ -303,7 +302,8 @@ function config_get()
     },
     timezones_wifi_reg_domains = timezones_wifi_reg_domains,
     encryptions = encryptions,
-    pub_key = luci.controller.arduino.index.read_gpg_pub_key()
+    pub_key = luci.controller.arduino.index.read_gpg_pub_key(),
+    rest_api_is_secured = rest_api_is_secured
   }
 
   luci.template.render("arduino/config", ctx)
@@ -438,16 +438,16 @@ function toogle_rest_api_security()
   local uci = luci.model.uci.cursor()
   uci:load("arduino")
 
-  local secure_rest_api = get_first(uci, "arduino", "arduino", "secure_rest_api")
-  if secure_rest_api == "true" then
-    set_first(uci, "arduino", "arduino", "secure_rest_api", "false")
-  else
+  local rest_api_secured = luci.http.formvalue("rest_api_secured")
+  if rest_api_secured == "true" then
     set_first(uci, "arduino", "arduino", "secure_rest_api", "true")
+  else
+    set_first(uci, "arduino", "arduino", "secure_rest_api", "false")
   end
 
   uci:commit("arduino")
 
-  go_to_homepage()
+  luci.http.redirect(luci.dispatcher.build_url("webpanel/config") .. "#rest_api")
 end
 
 local function build_bridge_request_digital_analog(command, pin, padded_pin, value)
