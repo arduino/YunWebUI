@@ -72,7 +72,11 @@ http.prepare_content("text/html; charset=utf-8")
     <% if last_log then %>
     <div class="wrapper divide">
       <div id="log_container">
-        <p>There was a problem last time I tried configuring wireless network. You can reset your Y&uacute;n to default network settings by holding the reset button for 5 seconds.</p>
+        <p>There was a problem last time I tried configuring wireless network. You can reset your Y&uacute;n to default network settings by holding the reset button for 5 seconds.
+        <% if last_log_error_message then %>
+          <br/>The error is: <strong><%= last_log_error_message %></strong>
+        <% end %>
+        </p>
         <p>Check the following log for details of what went wrong:</p>
         <textarea rows="20" readonly="readonly"><% for i,line in pairs(last_log) do %><%= line %>
 <% end %></textarea>

@@ -202,6 +202,17 @@ function go_to_homepage()
   luci.http.redirect(luci.dispatcher.build_url("webpanel/homepage"))
 end
 
+local function csv_to_array(text, callback)
+  local array = {}
+  local line_parts;
+  local lines = string.split(text, "\n")
+  for i, line in ipairs(lines) do
+    line_parts = string.split(line, "\t")
+    callback(line_parts, array)
+  end
+  return array
+end
+
 function homepage()
   local wa = require("luci.tools.webadmin")
   local network = luci.util.exec("LANG=en ifconfig | grep HWaddr")
@@ -250,8 +261,59 @@ function homepage()
     ifaces = ifaces
   }
 
+  --Traslates status codes extracted from include/linux/ieee80211.h to a more friendly version
+  local function parse_dmesg(lines)
+    local function get_error_message_from(file_suffix, code)
+      local function wifi_error_message_code_callback(line_parts, array)
+        if line_parts[1] and line_parts[2] then
+          table.insert(array, { message = line_parts[1], code = tonumber(line_parts[2]) })
+        end
+      end
+
+      local wifi_errors = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_error_" .. file_suffix .. ".csv.gz"), wifi_error_message_code_callback)
+      for idx, wifi_error in ipairs(wifi_errors) do
+        if code == wifi_error.code then
+          return lines, wifi_error.message
+        end
+      end
+      return lines, nil
+    end
+
+    local function find_dmesg_wifi_error_reason(lines)
+      for idx, line in ipairs(lines) do
+        if string.find(line, "disassociated from") then
+          return string.match(line, "Reason: (%d+)")
+        end
+      end
+      return nil
+    end
+
+    local code = tonumber(find_dmesg_wifi_error_reason(lines))
+    if code then
+      return get_error_message_from("reasons", code)
+    end
+
+    local function find_dmesg_wifi_error_status(lines)
+      for idx, line in ipairs(lines) do
+        if string.find(line, "denied authentication") then
+          return string.match(line, "status (%d+)")
+        end
+      end
+      return nil
+    end
+
+    code = tonumber(find_dmesg_wifi_error_status(lines))
+    if code then
+      return get_error_message_from("statuses", code)
+    end
+
+    return lines, nil
+  end
+
   if file_exists("/last_dmesg_with_wifi_errors.log") then
-    ctx["last_log"] = lines_from("/last_dmesg_with_wifi_errors.log")
+    local lines, error_message = parse_dmesg(lines_from("/last_dmesg_with_wifi_errors.log"))
+    ctx["last_log"] = lines
+    ctx["last_log_error_message"] = error_message
   end
 
   local update_file = check_update_file()
@@ -262,17 +324,10 @@ function homepage()
   luci.template.render("arduino/homepage", ctx)
 end
 
-local function csv_to_array(text)
-  local array = {}
-  local line_parts;
-  local lines = string.split(text, "\n")
-  for i, line in ipairs(lines) do
-    line_parts = string.split(line, "\t")
-    if line_parts[1] and line_parts[2] and line_parts[3] then
-      table.insert(array, { label = line_parts[1], timezone = line_parts[2], code = line_parts[3] })
-    end
+local function timezone_file_parse_callback(line_parts, array)
+  if line_parts[1] and line_parts[2] and line_parts[3] then
+    table.insert(array, { label = line_parts[1], timezone = line_parts[2], code = line_parts[3] })
   end
-  return array
 end
 
 function config_get()
@@ -280,7 +335,7 @@ function config_get()
   uci:load("system")
   uci:load("wireless")
 
-  local timezones_wifi_reg_domains = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_timezones.csv.gz"))
+  local timezones_wifi_reg_domains = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_timezones.csv.gz"), timezone_file_parse_callback)
 
   local encryptions = {}
   encryptions[1] = { code = "none", label = "None" }
@@ -334,7 +389,7 @@ function config_post()
 
   if params["timezone_desc"] then
     local function find_tz_regdomain(timezone_desc)
-      local tz_regdomains = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_timezones.csv.gz"))
+      local tz_regdomains = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_timezones.csv.gz"), timezone_file_parse_callback)
       for i, tz in ipairs(tz_regdomains) do
         if tz["label"] == timezone_desc then
           return tz
