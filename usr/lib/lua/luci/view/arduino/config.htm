@@ -94,6 +94,15 @@ http.prepare_content("text/html; charset=utf-8")
 
         <div id="wifi_container" class="">
           <li>
+            <label class="desc" for="detected_wifis">Detected wireless networks</label>
+
+            <div class="input_container">
+              <select id="detected_wifis" name="wifi_detected"></select>
+              <a id="refresh_detected_wifis" href="#">Refresh</a>
+            </div>
+          </li>
+
+          <li>
             <label class="desc" for="wifi_ssid">Wireless name <span class="req">*</span></label>
 
             <div class="input_container">
@@ -163,7 +172,9 @@ http.prepare_content("text/html; charset=utf-8")
 <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/gpg.ugly.js"></script>
 <script language="javascript">
   var pub_key = "<%= pub_key %>";
+  var refresh_wifi_url = "<%=pcdata(controller .. "/webpanel/wifi_detect")%>";
 </script>
+<script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/zepto.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="<%= resource %>/arduino/webpanel.ugly.js"></script>
 </body>
 </html>

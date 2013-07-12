@@ -171,6 +171,7 @@ function index()
   make_entry({ "webpanel", "go_to_homepage" }, call("go_to_homepage"), nil)
   make_entry({ "webpanel", "set_password" }, call("go_to_homepage"), nil)
   make_entry({ "webpanel", "config" }, call("config"), nil)
+  make_entry({ "webpanel", "wifi_detect" }, call("wifi_detect"), nil)
   make_entry({ "webpanel", "rebooting" }, template("arduino/rebooting"), nil)
   make_entry({ "webpanel", "reset_board" }, call("reset_board"), nil)
   make_entry({ "webpanel", "toogle_rest_api_security" }, call("toogle_rest_api_security"), nil)
@@ -474,6 +475,35 @@ function config()
   else
     config_get()
   end
+end
+
+function wifi_detect()
+  local sys = require("luci.sys")
+  local iw = sys.wifi.getiwinfo("radio0")
+  local wifis = iw.scanlist
+  local result = {}
+  for idx, wifi in ipairs(wifis) do
+    if not_nil_or_empty(wifi.ssid) then
+      local name = wifi.ssid
+      local encryption = "none"
+      local pretty_encryption = "None"
+      if wifi.encryption.wep then
+        encryption = "wep"
+        pretty_encryption = "WEP"
+      elseif wifi.encryption.wpa == 1 then
+        encryption = "psk"
+        pretty_encryption = "WPA"
+      elseif wifi.encryption.wpa >= 2 then
+        encryption = "psk2"
+        pretty_encryption = "WPA2"
+      end
+      table.insert(result, { name = name, encryption = encryption, pretty_encryption = pretty_encryption })
+    end
+  end
+
+  luci.http.prepare_content("application/json")
+  local json = require("luci.json")
+  luci.http.write(json.encode(result))
 end
 
 function reset_board()

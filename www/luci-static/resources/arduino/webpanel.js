@@ -115,6 +115,7 @@ function grey_out_wifi_conf(disabled) {
   document.getElementById("wifi_password").disabled = disabled;
   document.getElementById("wifi_ssid").disabled = disabled;
   document.getElementById("wifi_encryption").disabled = disabled;
+  document.getElementById("detected_wifis").disabled = disabled;
 }
 
 function matchpassword() {
@@ -150,5 +151,39 @@ document.body.onload = function() {
     }
   }
 
-};
+  if (document.getElementById("detected_wifis")) {
+    var detect_wifi_networks = function() {
+      var detected_wifis = $("#detected_wifis");
+      if (detected_wifis[0].disabled) {
+        return false;
+      }
+      detected_wifis.empty();
+      detected_wifis.append("<option>Detecting ...</option>");
+      $.get(refresh_wifi_url, function(wifis) {
+        detected_wifis.empty();
+        detected_wifis.append("<option>Select a wifi network...</option>");
+        for (var idx = 0; idx < wifis.length; idx++) {
+          var html = "<option value=\"" + wifis[idx].name + "|||" + wifis[idx].encryption + "\">" + wifis[idx].name;
+          if (wifis[idx].encryption !== "none") {
+            html = html + " (" + wifis[idx].pretty_encryption + ")";
+          }
+          html = html + "</option>";
+          detected_wifis.append(html);
+        }
+      });
+      return false;
+    };
+    document.getElementById("refresh_detected_wifis").onclick = detect_wifi_networks;
 
+    document.getElementById("detected_wifis").onchange = function() {
+      var parts = $("#detected_wifis").val().split("|||");
+      if (parts.length !== 2) {
+        return;
+      }
+      $("#wifi_ssid").val(parts[0]);
+      $("#wifi_encryption").val(parts[1]);
+      $("#wifi_encryption").change();
+    };
+    detect_wifi_networks();
+  }
+};
