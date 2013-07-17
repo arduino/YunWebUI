@@ -42,8 +42,8 @@ function formCheck(form) {
     errorHandler(hostname, errContainer, "Please choose a name for your Y&uacute;n");
     errors = true;
 
-  } else if (hostname.value.match(/[^a-zA-Z0-9_]/)) {
-    errorHandler(hostname, errContainer, "Incorrect hostname: you can use only characters between a and z, numbers and the underscore (_)");
+  } else if (hostname.value.match(/[^a-zA-Z0-9]/)) {
+    errorHandler(hostname, errContainer, "Incorrect hostname: you can use only characters between a and z and numbers");
     errors = true;
   }
 
