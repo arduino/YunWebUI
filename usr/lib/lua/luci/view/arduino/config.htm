@@ -156,8 +156,8 @@ http.prepare_content("text/html; charset=utf-8")
           <label for="restopen">Rest API access</label>
           <div class="input_container radio_container">
             <form method="post" action="<%=pcdata(controller .. "/webpanel/toogle_rest_api_security")%>">
-              <input type="radio" name="rest_api_secured" id="restopen" value="false" onclick="javascript:this.form.submit();" <% if not rest_api_is_secured then %> checked="checked"<% end %>><label for="restopen">Open</label>
-              <input type="radio" name="rest_api_secured" id="restpass" value="true" onclick="javascript:this.form.submit();" <% if rest_api_is_secured then %> checked="checked"<% end %>><label for="restpass">With password</label>
+              <input type="radio" name="rest_api_secured" id="restopen" value="false" <% if not rest_api_is_secured then %> checked="checked"<% end %>><label for="restopen">Open</label>
+              <input type="radio" name="rest_api_secured" id="restpass" value="true" <% if rest_api_is_secured then %> checked="checked"<% end %>><label for="restpass">With password</label>
             </form>
             <p class="input_message">lorem ipsum</p>
           </div>

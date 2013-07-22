@@ -531,8 +531,6 @@ function toogle_rest_api_security()
   end
 
   uci:commit("arduino")
-
-  luci.http.redirect(luci.dispatcher.build_url("webpanel/config") .. "#rest_api")
 end
 
 local function build_bridge_request_digital_analog(command, pin, padded_pin, value)

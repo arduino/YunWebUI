@@ -132,26 +132,26 @@ document.body.onload = function() {
   if (document.getElementById("username")) {
     document.getElementById("password").focus();
   }
-  if (document.getElementById("wificheck")) {
-    document.getElementById("wificheck").onclick = function(event) {
+  var wificheck = document.getElementById("wificheck");
+  if (wificheck) {
+    wificheck.onclick = function(event) {
       grey_out_wifi_conf(!event.target.checked);
     }
   }
-  if (document.getElementById("wifi_encryption")) {
-    document.getElementById("wifi_encryption").onchange = function(event) {
+  var wifi_encryption = document.getElementById("wifi_encryption");
+  if (wifi_encryption) {
+    wifi_encryption.onchange = function(event) {
       onchange_security(event.target);
     }
   }
-  if (document.getElementById("confpassword")) {
-    document.getElementById("confpassword").onkeyup = function(event) {
-      matchpassword(event.target);
-    };
-    document.getElementById("password").onkeyup = function(event) {
-      matchpassword(event.target);
-    }
+  var confpassword = document.getElementById("confpassword");
+  if (confpassword) {
+    confpassword.onkeyup = matchpassword;
+    document.getElementById("password").onkeyup = matchpassword;
   }
 
-  if (document.getElementById("detected_wifis")) {
+  var detected_wifis = document.getElementById("detected_wifis");
+  if (detected_wifis) {
     var detect_wifi_networks = function() {
       var detected_wifis = $("#detected_wifis");
       if (detected_wifis[0].disabled) {
@@ -175,15 +175,25 @@ document.body.onload = function() {
     };
     document.getElementById("refresh_detected_wifis").onclick = detect_wifi_networks;
 
-    document.getElementById("detected_wifis").onchange = function() {
+    detected_wifis.onchange = function() {
       var parts = $("#detected_wifis").val().split("|||");
       if (parts.length !== 2) {
         return;
       }
       $("#wifi_ssid").val(parts[0]);
-      $("#wifi_encryption").val(parts[1]);
-      $("#wifi_encryption").change();
+      var $wifi_encryption = $("#wifi_encryption");
+      $wifi_encryption.val(parts[1]);
+      $wifi_encryption.change();
     };
     detect_wifi_networks();
+  }
+
+  var restopen = document.getElementById("restopen");
+  if (restopen) {
+    var toogle_rest_api = function() {
+      $.post(this.form.action);
+    };
+    restopen.onclick = toogle_rest_api;
+    document.getElementById("restpass").onclick = toogle_rest_api;
   }
 };
