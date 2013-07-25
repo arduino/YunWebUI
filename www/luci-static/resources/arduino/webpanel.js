@@ -220,7 +220,9 @@ document.body.onload = function() {
   var restopen = document.getElementById("restopen");
   if (restopen) {
     var toogle_rest_api = function() {
-      $.post(this.form.action);
+      var data = {};
+      data[this.name] = $(this).val();
+      $.post(this.form.action, data);
     };
     restopen.onclick = toogle_rest_api;
     document.getElementById("restpass").onclick = toogle_rest_api;
