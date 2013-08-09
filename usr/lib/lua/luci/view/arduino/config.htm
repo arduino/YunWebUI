@@ -187,7 +187,7 @@ http.prepare_content("text/html; charset=utf-8")
               <input type="radio" name="rest_api_secured" id="restopen" value="false" <% if not rest_api_is_secured then %> checked="checked"<% end %>><label for="restopen">Open</label>
               <input type="radio" name="rest_api_secured" id="restpass" value="true" <% if rest_api_is_secured then %> checked="checked"<% end %>><label for="restpass">With password</label>
             </form>
-            <p class="input_message">REST APIs allow you to access your sketch from the web, sending commands or exchanging configuration values.<br/>I suggest to leave it password protected but if you've just started playing with the Y&uacute;n, you could leave it open.</p>
+            <p class="input_message">REST APIs allow you to access your sketch from the web, sending commands or exchanging configuration values.<br/>If your Y&uacute;n is on a public network, or controlling sensitive equipment, or both, we recommend you leave the REST API password protected.</p>
           </div>
         </li>
       </ul>

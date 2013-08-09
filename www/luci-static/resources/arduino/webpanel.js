@@ -179,6 +179,21 @@ document.body.onload = function() {
     document.getElementById("password").onkeyup = matchpassword;
   }
 
+  var dmesg = document.getElementById("dmesg");
+  if (dmesg) {
+    $("#dmesg").hide();
+    $("#dmesg_toogle").on("click", function() {
+      if ($(this).text() == "Show") {
+        $("#dmesg").show();
+        $(this).text("Hide");
+      } else {
+        $("#dmesg").hide();
+        $(this).text("Show");
+      }
+      return false;
+    });
+  }
+
   var detected_wifis = document.getElementById("detected_wifis");
   if (detected_wifis) {
     var detect_wifi_networks = function() {
