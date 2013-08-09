@@ -72,7 +72,7 @@ function formCheck(form) {
     errors = true;
 
   } else if (hostname.value.match(/[^a-zA-Z0-9]/)) {
-    errorHandler(hostname, errContainer, "Incorrect hostname: you can use only characters between a and z and numbers");
+    errorHandler(hostname, errContainer, "You can only use alphabetical characters for the hostname (A-Z or a-z)");
     errors = true;
   }
 
