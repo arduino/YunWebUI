@@ -179,7 +179,12 @@ function index()
       local gpg_pub_key_ascii = luci.controller.arduino.index.read_gpg_pub_key()
       luci.template.render("arduino/set_password", { duser = default, fuser = user, pub_key = gpg_pub_key_ascii, login_failed = dec_params ~= nil })
     else
-      luci.http.status(403)
+      if user then
+        luci.http.status(403)
+      else
+        luci.http.header("WWW-Authenticate", "Basic realm=\"arduino\"")
+        luci.http.status(401)
+      end
     end
 
     return false
