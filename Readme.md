@@ -37,10 +37,8 @@ svn co http://svn.luci.subsignal.org/luci/branches/luci-0.11 luci
 git clone git@github.com:arduino/YunWebUI.git
 
 cd luci
-cp -R applications/myapplication applications/arduino
-find applications/arduino -name '.svn' -exec rm -rf {} \;
-rm -rf applications/arduino/dist
-rm -rf applications/arduino/luasrc
+mkdir applications/arduino
+cp applications/myapplication/Makefile applications/arduino
 ln -s ~/YunWebUI/usr/lib/lua/luci applications/arduino/luasrc
 ln -s ~/YunWebUI/www applications/arduino/htdocs
 ```
