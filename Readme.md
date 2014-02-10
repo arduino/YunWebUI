@@ -1,5 +1,4 @@
-Arduino Yún Web panel
-=============
+# Arduino Yún Web panel
 
 This is the web configuration panel and REST api provider you find running on your Yún at http://arduino.local/
 
@@ -9,8 +8,7 @@ It has two goals:
 * hide all the complexity (and power) offered by LuCI in order to give users a fast and straightforward experience in setting up their Yún.
 * provide an easy to use REST (web) API. Yún REST API is a "web way" to talk to your sketch through your browser: for example, you can query sensors value, send commands and share data between.
 
-Development: the easy way
-=============
+## Development: the easy way
 
 The easiest way to hack the web panel is to copy on your Yún the files you find in this repo, maintaining the folders structure.
 
@@ -20,8 +18,7 @@ Then access the webpanel at http://arduino.local/ (where "arduino" is the name o
 
 Once done, copy the files back to your pc and submit us a [pull request](https://help.github.com/categories/63/articles), so that everyone can take advantage of the improvements you made.
 
-Development: the fast, local but hard way
-=============
+## Development: the fast, local but hard way
 
 You need a GNU/Linux box and the following packages: `subversion`, `gnupg`, `lua5.1`, `make`, `gcc`, `wget`
 
