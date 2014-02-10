@@ -20,7 +20,7 @@ Once done, copy the files back to your pc and submit us a [pull request](https:/
 
 ## Development: the fast, local but hard way
 
-You need a GNU/Linux box and the following packages: `subversion`, `gnupg`, `lua5.1`, `make`, `gcc`, `wget`
+You need a GNU/Linux box and the following tools: `subversion`, `gnupg`, `lua`, `make`, `gcc`, `wget`. On Debian based distros, these are packages `subversion`, `gnupg`, `lua5.1`, `build-essential`, `wget`.
 
 Open the terminal and type
 ```bash
@@ -43,8 +43,8 @@ ln -s ~/YunWebUI/usr/lib/lua/luci applications/arduino/luasrc
 ln -s ~/YunWebUI/www applications/arduino/htdocs
 ```
 
-If everything run smoothly, you're now ready to start the webpanel. Type the last command on the terminal
+If everything ran smoothly, you're now ready to start the webpanel. Type the last command on the terminal
 ```bash
 make runhttpd
 ```
-and finally go to http://localhost:8080/luci/webpanel
+and finally go to [http://localhost:8080/luci/webpanel](http://localhost:8080/luci/webpanel)
