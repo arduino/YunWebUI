@@ -609,7 +609,7 @@ local function extract_jsonp_param(query_string)
 
   local qs_parts = string.split(query_string, "&")
   for idx, value in ipairs(qs_parts) do
-    if string.find(value, "jsonp") == 1 then
+    if string.find(value, "jsonp") == 1 or string.find(value, "callback") == 1 then
       return string.sub(value, string.find(value, "=") + 1)
     end
   end
