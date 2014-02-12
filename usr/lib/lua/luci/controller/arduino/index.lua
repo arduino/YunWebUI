@@ -568,26 +568,6 @@ function toogle_rest_api_security()
   uci:commit("arduino")
 end
 
-local function build_bridge_request_digital_analog(command, pin, padded_pin, value)
-  local data = { command, "/", padded_pin };
-
-  if value then
-    if command == "digital" then
-      if value ~= 0 and value ~= 1 then
-        return nil
-      end
-      table.insert(data, "/")
-      table.insert(data, value)
-    else
-      if value > 999 then
-        return nil
-      end
-      table.insert(data, "/")
-      table.insert(data, string.format("%03d", value))
-    end
-  end
-end
-
 local function build_bridge_request(command, params)
 
   local bridge_request = {
