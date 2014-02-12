@@ -61,7 +61,7 @@ function formCheck(form) {
     if (nullOrEmpty(wifi_password.value)) {
       errorHandler(wifi_password, errContainer, "Please choose a WiFi password");
       errors = true;
-    } else if (wifi_password.value.length < 8) {
+    } else if (wifi_encryption.value != "wep" && wifi_password.value.length < 8) {
       errorHandler(wifi_password, errContainer, "WiFi password should be 8 char at least");
       errors = true;
     }
