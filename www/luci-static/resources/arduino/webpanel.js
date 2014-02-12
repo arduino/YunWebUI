@@ -79,7 +79,10 @@ function formCheck(form) {
   if (password.value != null && password.value != "" && password.value.length < 8) {
     errorHandler(password, errContainer, "Password should be 8 char at least");
     errors = true;
-  }
+	} else if (!passwords_match()) {
+		errorHandler(password, errContainer, "Passwords do not match");
+		errors = true;
+	}
 
   return !errors;
 }
@@ -147,14 +150,18 @@ function grey_out_wifi_conf(disabled) {
   document.getElementById("detected_wifis").disabled = disabled;
 }
 
-function matchpassword() {
+function passwords_match() {
   var confpassword = document.getElementById("confpassword");
   var password = document.getElementById("password");
-  if (confpassword.value == password.value) {
-    document.getElementById("pass_mismatch").setAttribute("class", "hidden error_container input_message");
-  } else {
-    document.getElementById("pass_mismatch").setAttribute("class", "error_container input_message");
-  }
+  return confpassword.value == password.value;
+}
+
+function show_message_is_passwords_dont_match() {
+	if (passwords_match()) {
+		document.getElementById("pass_mismatch").setAttribute("class", "hidden error_container input_message");
+	} else {
+		document.getElementById("pass_mismatch").setAttribute("class", "error_container input_message");
+	}
 }
 
 document.body.onload = function() {
@@ -175,8 +182,8 @@ document.body.onload = function() {
   }
   var confpassword = document.getElementById("confpassword");
   if (confpassword) {
-    confpassword.onkeyup = matchpassword;
-    document.getElementById("password").onkeyup = matchpassword;
+    confpassword.onkeyup = show_message_is_passwords_dont_match;
+    document.getElementById("password").onkeyup = show_message_is_passwords_dont_match;
   }
 
   var dmesg = document.getElementById("dmesg");
