@@ -226,6 +226,7 @@ function index()
   make_entry({ "data", "get" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
   make_entry({ "data", "put" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
   make_entry({ "data", "delete" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
+  make_entry({ "mailbox" }, call("build_bridge_mailbox_request"), nil).sysauth = rest_api_sysauth
 
   --plain socket endpoint
   local plain_socket_endpoint = make_entry({ "arduino" }, call("board_plain_socket"), nil)
@@ -567,37 +568,18 @@ function toogle_rest_api_security()
   uci:commit("arduino")
 end
 
-local function build_bridge_request_digital_analog(command, pin, padded_pin, value)
-  local data = { command, "/", padded_pin };
-
-  if value then
-    if command == "digital" then
-      if value ~= 0 and value ~= 1 then
-        return nil
-      end
-      table.insert(data, "/")
-      table.insert(data, value)
-    else
-      if value > 999 then
-        return nil
-      end
-      table.insert(data, "/")
-      table.insert(data, string.format("%03d", value))
-    end
-  end
-
-  local bridge_request = {
-    command = "raw",
-    data = table.concat(data)
-  }
-  return bridge_request
-end
-
 local function build_bridge_request(command, params)
 
   local bridge_request = {
     command = command
   }
+  
+  if command == "raw" then
+    if not_nil_or_empty(params[1]) then
+      bridge_request["data"] = params[1]
+    end
+    return bridge_request
+  end
 
   if command == "get" then
     if not_nil_or_empty(params[1]) then
@@ -799,4 +781,43 @@ function board_plain_socket()
   sock:close()
 
   send_response(response_text, jsonp_callback)
+end
+
+function build_bridge_mailbox_request()
+  local method = luci.http.getenv("REQUEST_METHOD")
+  local jsonp_callback = extract_jsonp_param(luci.http.getenv("QUERY_STRING"))
+  local parts = parts_after("mailbox")
+  local params = {}
+  for idx, param in ipairs(parts) do
+    if not_nil_or_empty(param) then
+      table.insert(params, param)
+    end
+  end
+
+  -- TODO check method?
+  local bridge_request = build_bridge_request("raw", params)
+  if not bridge_request then
+    luci.http.status(403)
+    return
+  end
+
+  local sock, code, msg = nixio.connect("127.0.0.1", 5700)
+  if not sock then
+    code = code or ""
+    msg = msg or ""
+    http_error(500, "nil socket, " .. code .. " " .. msg)
+    return
+  end
+
+  sock:setopt("socket", "sndtimeo", 5)
+  sock:setopt("socket", "rcvtimeo", 5)
+  sock:setopt("tcp", "nodelay", 1)
+
+  local json = require("luci.json")
+
+  sock:write(json.encode(bridge_request))
+  sock:writeall("\n")
+  sock:close()
+  
+  luci.http.status(200)
 end
