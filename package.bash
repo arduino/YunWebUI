@@ -11,7 +11,7 @@ PREFIX=`basename $SOURCE_FOLDER`
 
 cd ..
 
-VERSION=1.1.0
+VERSION=1.2.0
 
 tar --transform "s|$PREFIX/|luci-app-arduino-webpanel-$VERSION/|g" -cjv -f luci-app-arduino-webpanel-$VERSION.tar.bz2 \
   $PREFIX/www/index.html \
@@ -24,3 +24,7 @@ tar --transform "s|$PREFIX/|luci-app-arduino-webpanel-$VERSION/|g" -cjv -f luci-
 mv luci-app-arduino-webpanel-* $SOURCE_FOLDER
 
 echo "=== Done!"
+
+cd -
+
+md5sum luci-app-arduino-webpanel*
