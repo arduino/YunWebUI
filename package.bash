@@ -11,7 +11,7 @@ PREFIX=`basename $SOURCE_FOLDER`
 
 cd ..
 
-VERSION=1.2.0
+VERSION=1.2.1
 
 tar --transform "s|$PREFIX/|luci-app-arduino-webpanel-$VERSION/|g" -cjv -f luci-app-arduino-webpanel-$VERSION.tar.bz2 \
   $PREFIX/www/index.html \
