@@ -226,6 +226,9 @@ function index()
   make_entry({ "data", "get" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
   make_entry({ "data", "put" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
   make_entry({ "data", "delete" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
+  local mailbox_api = node("mailbox")
+  mailbox_api.sysauth = rest_api_sysauth
+  mailbox_api.sysauth_authenticator = webpanel.sysauth_authenticator
   make_entry({ "mailbox" }, call("build_bridge_mailbox_request"), nil).sysauth = rest_api_sysauth
 
   --plain socket endpoint
