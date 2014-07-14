@@ -43,7 +43,6 @@ local function lines_from(file)
   return lines
 end
 
---[[
 local function rfind(s, c)
   local last = 1
   while string.find(s, c, last, true) do
@@ -51,7 +50,6 @@ local function rfind(s, c)
   end
   return last
 end
-]]
 
 local function param(name)
   local val = luci.http.formvalue(name)
@@ -209,6 +207,7 @@ function index()
   make_entry({ "webpanel", "rebooting" }, template("arduino/rebooting"), nil)
   make_entry({ "webpanel", "reset_board" }, call("reset_board"), nil)
   make_entry({ "webpanel", "toogle_rest_api_security" }, call("toogle_rest_api_security"), nil)
+  make_entry({ "webpanel", "upload_sketch" }, call("upload_sketch"), nil)
 
   --api security level
   local uci = luci.model.uci.cursor()
@@ -598,6 +597,43 @@ function toogle_rest_api_security()
   end
 
   uci:commit("arduino")
+end
+
+function upload_sketch()
+  local sketch_hex = "/tmp/sketch.hex"
+
+  local chunk_number = 0
+
+  local fp
+  luci.http.setfilehandler(function(meta, chunk, eof)
+    if not fp then
+      fp = io.open(sketch_hex, "w")
+    end
+    if chunk then
+      chunk_number = chunk_number + 1
+      fp:write(chunk)
+    end
+    if eof then
+      chunk_number = chunk_number + 1
+      fp:close()
+    end
+  end)
+
+  local sketch = luci.http.formvalue("sketch_hex")
+  if sketch and #sketch > 0 and rfind(sketch, ".hex") > 1 then
+    local merge_output = luci.util.exec("merge-sketch-with-bootloader.lua " .. sketch_hex .. " 2>&1")
+    local kill_bridge_output = luci.util.exec("kill-bridge 2>&1")
+    local run_avrdude_output = luci.util.exec("run-avrdude /tmp/sketch.hex '-q -q' 2>&1")
+
+    local ctx = {
+      merge_output = merge_output,
+      kill_bridge_output = kill_bridge_output,
+      run_avrdude_output = run_avrdude_output
+    }
+    luci.template.render("arduino/upload", ctx)
+  else
+    luci.http.redirect(luci.dispatcher.build_url("webpanel/homepage"))
+  end
 end
 
 local function build_bridge_request(command, params)

@@ -1,0 +1,91 @@
+<%
+local http = require("luci.http")
+http.prepare_content("text/html; charset=utf-8")
+-%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+ This file is part of YunWebUI.
+
+ YunWebUI is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+ As a special exception, you may use this file as part of a free software
+ library without restriction.  Specifically, if other files instantiate
+ templates or use macros or inline functions from this file, or you compile
+ this file and link it with other files to produce an executable, this
+ file does not by itself cause the resulting executable to be covered by
+ the GNU General Public License.  This exception does not however
+ invalidate any other reasons why the executable file might be covered by
+ the GNU General Public License.
+
+ Copyright 2013 Arduino LLC (http://www.arduino.cc/)
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+  <link rel="stylesheet" type="text/css" href="<%= resource %>/arduino/style.ugly.css"/>
+  <title>Y&uacute;n &#20113;</title>
+</head>
+<body>
+<div id="container">
+  <div id="header">
+    <div class="wrapper">
+      <h1>Y&uacute;n &#20113;</h1>
+
+      <div id="logo"><a href="<%= pcdata(controller .. '/webpanel') %>"><img src="<%= resource %>/arduino/logo.png" alt="Y&uacute;n"/></a></div>
+      <div id="logophone"><a href="<%= pcdata(controller .. '/webpanel') %>"><img src="<%= resource %>/arduino/logo_phone.png" alt="Y&uacute;n"/></a></div>
+    </div>
+  </div>
+  <div id="content">
+    <div class="wrapper divide">
+      <h2>Uploading sketch...</h2>
+    </div>
+    <div class="wrapper divide">
+      <% if string.len(merge_output) > 0 then %>
+      <p>Error while merging sketch with bootloader</p>
+      <textarea rows="5" readonly="readonly"><%= merge_output %></textarea>
+      <% else %>
+      <p>Merged sketch with bootloader.</p>
+      <% end %>
+
+      <% if string.len(kill_bridge_output) > 0 then %>
+      <p>Error while killing bridge</p>
+      <textarea rows="5" readonly="readonly"><%= kill_bridge_output %></textarea>
+      <% else %>
+      <p>Previously running Bridge terminated.</p>
+      <% end %>
+
+      <% if string.len(run_avrdude_output) > 0 then %>
+      <p>Error while running avrdude</p>
+      <textarea rows="5" readonly="readonly"><%= run_avrdude_output %></textarea>
+      <% else %>
+      <p>Sketch uploaded succesfully.</p>
+      <% end %>
+    </div>
+    <div class="wrapper divide">
+      <form method="get" action="<%= pcdata(controller .. '/webpanel') %>">
+        <ul>
+          <li>
+            <div class="input_container">
+              <input class="btTxt submit saveForm" type="submit" name="button" value="Back to the homepage">
+            </div>
+          </li>
+        </ul>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

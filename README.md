@@ -20,13 +20,13 @@ Once done, copy the files back to your pc and submit us a [pull request](https:/
 
 ## Development: the fast, local but hard way
 
-You need a GNU/Linux box and the following tools: `subversion`, `gnupg`, `lua`, `make`, `gcc`, `wget`. On Debian based distros, these are packages `subversion`, `gnupg`, `lua5.1`, `build-essential`, `wget`.
+You need a GNU/Linux box and the following tools: `subversion`, `gnupg`, `lua`, `make`, `gcc`, `wget`. On Debian based distros, these are packages `subversion`, `gnupg`, `lua5.1`, `liblua5.1-0-dev`, `build-essential`, `wget`.
 
 Open the terminal and type
 ```bash
 sudo mkdir /etc/arduino
 cd /etc/arduino
-sudo wget https://raw.github.com/arduino/linino/master/trunk/package/linino/yun-conf/files/etc/arduino/gpg_gen_key_batch
+sudo wget https://raw.githubusercontent.com/arduino/openwrt-packages-yun/master/arduino/yun-conf/files/etc/arduino/gpg_gen_key_batch
 sudo gpg --batch --gen-key /etc/arduino/gpg_gen_key_batch
 sudo rm -f /etc/arduino/arduino_gpg.asc
 sudo gpg --no-default-keyring --secret-keyring /etc/arduino/arduino_gpg.sec --keyring /etc/arduino/arduino_gpg.pub --export --armor --output /etc/arduino/arduino_gpg.asc

@@ -140,6 +140,36 @@ http.prepare_content("text/html; charset=utf-8")
     </div>
     <% end %>
 
+    <div class="wrapper divide">
+      <h3>Upload sketch</h3>
+      <p class="description">Select a <strong>.hex</strong> file (compiled sketch) and upload it on the microcontroller of this Y&uacute;n.
+        <br>
+        For more information about how to obtain the <strong>.hex</strong> file of your sketch, visit <a target="_blank" href="http://arduino.cc/en/Hacking/BuildProcess">this page</a>.
+      </p>
+      <p>
+      <form method="post" action="<%= pcdata(controller .. '/webpanel/upload_sketch') %>" enctype="multipart/form-data">
+        <ul>
+          <li>
+            <div class="input_container">
+              <input id="sketch" name="sketch_hex" type="file">
+            </div>
+            <p><br/></p>
+          </li>
+          <li>
+            <div class="input_container">
+              <input id="upload_button" class="btTxt submit saveForm" type="submit" name="button" value="Upload">
+            </div>
+          </li>
+          <li id="progress_bar_upload" style="display: none">
+            <div class="progress_bar_upload blue_arduino stripes">
+              <span style="width: 100%"></span>
+            </div>
+          </li>
+        </ul>
+      </form>
+      </p>
+    </div>
+
     <!--
     <div class="wrapper divide" id="www">
       <div id="currsketch">

@@ -88,7 +88,7 @@ function formCheck(form) {
 }
 
 function formReset() {
-  setTimeout(function () {
+  setTimeout(function() {
     grey_out_wifi_conf(!document.getElementById("wificheck").checked);
     onchange_security(document.getElementById("wifi_encryption"));
   }, 100);
@@ -164,19 +164,28 @@ function show_message_is_passwords_dont_match() {
   }
 }
 
-document.body.onload = function () {
+function onclick_upload() {
+  $("#progress_bar_upload").attr("style", "");
+  $("#upload_button").addClass("btn").attr("disabled", "true");
+}
+
+document.body.onload = function() {
+  if ($("#progress_bar_upload").length > 0) {
+    $("#upload_button").click(onclick_upload);
+  }
+
   if (document.getElementById("username")) {
     document.getElementById("password").focus();
   }
   var wificheck = document.getElementById("wificheck");
   if (wificheck) {
-    wificheck.onclick = function (event) {
+    wificheck.onclick = function(event) {
       grey_out_wifi_conf(!event.target.checked);
     }
   }
   var wifi_encryption = document.getElementById("wifi_encryption");
   if (wifi_encryption) {
-    wifi_encryption.onchange = function (event) {
+    wifi_encryption.onchange = function(event) {
       onchange_security(event.target);
     }
   }
@@ -189,7 +198,7 @@ document.body.onload = function () {
   var dmesg = document.getElementById("dmesg");
   if (dmesg) {
     $("#dmesg").hide();
-    $("#dmesg_toogle").on("click", function () {
+    $("#dmesg_toogle").on("click", function() {
       if ($(this).text() == "Show") {
         $("#dmesg").show();
         $(this).text("Hide");
@@ -203,14 +212,14 @@ document.body.onload = function () {
 
   var detected_wifis = document.getElementById("detected_wifis");
   if (detected_wifis) {
-    var detect_wifi_networks = function () {
+    var detect_wifi_networks = function() {
       var detected_wifis = $("#detected_wifis");
       if (detected_wifis[0].disabled) {
         return false;
       }
       detected_wifis.empty();
       detected_wifis.append("<option>Detecting ...</option>");
-      $.get(refresh_wifi_url, function (wifis) {
+      $.get(refresh_wifi_url, function(wifis) {
         detected_wifis.empty();
         detected_wifis.append("<option>Select a wifi network...</option>");
         for (var idx = 0; idx < wifis.length; idx++) {
@@ -226,7 +235,7 @@ document.body.onload = function () {
     };
     document.getElementById("refresh_detected_wifis").onclick = detect_wifi_networks;
 
-    detected_wifis.onchange = function () {
+    detected_wifis.onchange = function() {
       var parts = $("#detected_wifis").val().split("|||");
       if (parts.length !== 2) {
         return;
@@ -241,7 +250,7 @@ document.body.onload = function () {
 
   var restopen = document.getElementById("restopen");
   if (restopen) {
-    var toogle_rest_api = function () {
+    var toogle_rest_api = function() {
       var data = {};
       data[this.name] = $(this).val();
       $.post(this.form.action, data);
