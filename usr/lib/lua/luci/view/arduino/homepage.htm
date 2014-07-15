@@ -115,7 +115,14 @@ http.prepare_content("text/html; charset=utf-8")
 
     <% if update_file then %>
     <div class="wrapper divide">
-      <p>A file named <strong><%= update_file %></strong> has been found on the SD card.<br />Do you wish to use it to reset your Y&uacute;n?</p>
+      <p>A file named <strong><%= update_file %></strong> has been found on the SD card.<br />
+        <% if update_file_build_date then %>
+        It contains a version of OpenWrt-Y&uacute;n built on <strong><%= os.date("%b %d, %Y", update_file_build_date) %></strong>.
+        <% if update_file_newer then %>
+        It's a <strong>newer</strong> version!
+        <% end %>
+        <% end %>
+        <br/>Do you wish to use it to reset your Y&uacute;n?</p>
       <p class="highlight alert">
         <strong>ATTENTION!!</strong><br/>This will erase everything stored on the Y&uacute;n and update the whole system! Back up any custom files on your Y&uacute;n before proceeding!
       </p>

@@ -252,6 +252,25 @@ local function csv_to_array(text, callback)
   return array
 end
 
+local function parse_date_from_command(command)
+  local function AnIndexOf(t, val)
+    for k, v in ipairs(t) do
+      if v == val then return k end
+    end
+  end
+
+  local months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
+
+  local date = luci.util.exec(command)
+
+  if not date or #date == 0 then
+    return 0
+  end
+
+  local month, day, hour, min, sec, year = date:match("%w+ (%w+) (%d+) (%d+):(%d+):(%d+) %w+ (%d+)")
+  return os.time({ year = year, month = AnIndexOf(months, month), day = day, hour = hour, min = min, sec = sec })
+end
+
 function homepage()
   local wa = require("luci.tools.webadmin")
   local network = luci.util.exec("LANG=en ifconfig | grep HWaddr")
@@ -358,6 +377,16 @@ function homepage()
   local update_file = check_update_file()
   if update_file then
     ctx["update_file"] = update_file
+
+    if file_exists("/usr/bin/extract-built-date-from-sysupgrade-image") then
+      local update_file_build_date = parse_date_from_command("extract-built-date-from-sysupgrade-image " .. update_file)
+      if update_file_build_date > 0 then
+        ctx["update_file_build_date"] = update_file_build_date
+
+        local current_build_date = parse_date_from_command("extract-built-date /etc/arduino/openwrt-yun-release")
+        ctx["update_file_newer"] = os.difftime(current_build_date, update_file_build_date) < 0
+      end
+    end
   end
 
   luci.template.render("arduino/homepage", ctx)
@@ -576,7 +605,7 @@ local function build_bridge_request(command, params)
   local bridge_request = {
     command = command
   }
-  
+
   if command == "raw" then
     params = table.concat(params, "/")
     if not_nil_or_empty(params) then
@@ -826,6 +855,6 @@ function build_bridge_mailbox_request()
   sock:write(json.encode(bridge_request))
   sock:writeall("\n")
   sock:close()
-  
+
   luci.http.status(200)
 end
