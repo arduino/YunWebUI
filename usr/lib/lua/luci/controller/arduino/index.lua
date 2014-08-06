@@ -266,7 +266,7 @@ local function parse_date_from_command(command)
     return 0
   end
 
-  local month, day, hour, min, sec, year = date:match("%w+ (%w+) (%d+) (%d+):(%d+):(%d+) %w+ (%d+)")
+  local month, day, hour, min, sec, year = date:match("%w+%s+(%w+)%s+(%d+)%s+(%d+):(%d+):(%d+)%s+%w+%s+(%d+)")
   return os.time({ year = year, month = AnIndexOf(months, month), day = day, hour = hour, min = min, sec = sec })
 end
 
