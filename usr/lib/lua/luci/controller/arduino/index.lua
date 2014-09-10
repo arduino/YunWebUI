@@ -716,6 +716,10 @@ function storage_send_request()
     return
   end
 
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+  local socket_timeout = uci:get_first("arduino", "arduino", "socket_timeout", 5)
+
   local sock, code, msg = nixio.connect("127.0.0.1", 5700)
   if not sock then
     code = code or ""
@@ -724,8 +728,8 @@ function storage_send_request()
     return
   end
 
-  sock:setopt("socket", "sndtimeo", 5)
-  sock:setopt("socket", "rcvtimeo", 5)
+  sock:setopt("socket", "sndtimeo", socket_timeout)
+  sock:setopt("socket", "rcvtimeo", socket_timeout)
   sock:setopt("tcp", "nodelay", 1)
 
   local json = require("luci.json")
@@ -831,6 +835,10 @@ function board_plain_socket()
 
   params = table.concat(params, "/")
 
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+  local socket_timeout = uci:get_first("arduino", "arduino", "socket_timeout", 5)
+
   local sock, code, msg = nixio.connect("127.0.0.1", 5555)
   if not sock then
     code = code or ""
@@ -839,8 +847,8 @@ function board_plain_socket()
     return
   end
 
-  sock:setopt("socket", "sndtimeo", 5)
-  sock:setopt("socket", "rcvtimeo", 5)
+  sock:setopt("socket", "sndtimeo", socket_timeout)
+  sock:setopt("socket", "rcvtimeo", socket_timeout)
   sock:setopt("tcp", "nodelay", 1)
 
   sock:write(params)
@@ -874,6 +882,10 @@ function build_bridge_mailbox_request()
     return
   end
 
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+  local socket_timeout = uci:get_first("arduino", "arduino", "socket_timeout", 5)
+
   local sock, code, msg = nixio.connect("127.0.0.1", 5700)
   if not sock then
     code = code or ""
@@ -882,8 +894,8 @@ function build_bridge_mailbox_request()
     return
   end
 
-  sock:setopt("socket", "sndtimeo", 5)
-  sock:setopt("socket", "rcvtimeo", 5)
+  sock:setopt("socket", "sndtimeo", socket_timeout)
+  sock:setopt("socket", "rcvtimeo", socket_timeout)
   sock:setopt("tcp", "nodelay", 1)
 
   local json = require("luci.json")
