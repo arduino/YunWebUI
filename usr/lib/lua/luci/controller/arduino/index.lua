@@ -373,17 +373,20 @@ function homepage()
     ctx["last_log_error_message"] = error_message
   end
 
+  if file_exists("/usr/bin/extract-built-date") then
+    ctx["current_build_date"] = parse_date_from_command("extract-built-date /etc/arduino/openwrt-yun-release")
+  end
+
   local update_file = check_update_file()
   if update_file then
     ctx["update_file"] = update_file
 
-    if file_exists("/usr/bin/extract-built-date-from-sysupgrade-image") then
+    if file_exists("/usr/bin/extract-built-date-from-sysupgrade-image") and ctx["current_build_date"] then
       local update_file_build_date = parse_date_from_command("extract-built-date-from-sysupgrade-image " .. update_file)
       if update_file_build_date > 0 then
         ctx["update_file_build_date"] = update_file_build_date
 
-        local current_build_date = parse_date_from_command("extract-built-date /etc/arduino/openwrt-yun-release")
-        ctx["update_file_newer"] = os.difftime(current_build_date, update_file_build_date) < 0
+        ctx["update_file_newer"] = os.difftime(ctx["current_build_date"], update_file_build_date) < 0
       end
     end
   end

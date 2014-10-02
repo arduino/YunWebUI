@@ -195,6 +195,12 @@ textarea {
 	text-align: right;
 }
 
+.footer {
+	text-align: center;
+	background-color: #00929f;
+	font-size: 0.85em;
+}
+
 #logo {
 	margin: 0 auto;
 	width: 8.5em;
@@ -521,7 +527,7 @@ span.row span.val {
 
 @media only screen and (max-width: 320px) {
 	body {
-		background: #f5f5f5;
+		background: #00929f;
 		font-size: 1em;
 	}
 
@@ -553,7 +559,7 @@ span.row span.val {
 
 @media (max-width: 767px) {
 	body {
-		background: #f5f5f5;
+		background: #00929f;
 		font-size: .9em;
 	}
 
