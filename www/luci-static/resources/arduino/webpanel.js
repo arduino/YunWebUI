@@ -223,11 +223,12 @@ document.body.onload = function() {
         detected_wifis.empty();
         detected_wifis.append("<option>Select a wifi network...</option>");
         for (var idx = 0; idx < wifis.length; idx++) {
-          var html = "<option value=\"" + wifis[idx].name + "|||" + wifis[idx].encryption + "\">" + wifis[idx].name;
+          var html = "<option value=\"" + wifis[idx].name + "|||" + wifis[idx].encryption + "\">" + wifis[idx].name + " (";
           if (wifis[idx].encryption !== "none") {
-            html = html + " (" + wifis[idx].pretty_encryption + ")";
+            html = html + wifis[idx].pretty_encryption + ", ";
           }
-          html = html + "</option>";
+          html = html + "quality " + wifis[idx].signal_strength + "%";
+          html = html + ")</option>";
           detected_wifis.append(html);
         }
       });

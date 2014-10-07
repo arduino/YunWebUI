@@ -566,7 +566,8 @@ function wifi_detect()
         encryption = "psk2"
         pretty_encryption = "WPA2"
       end
-      table.insert(result, { name = name, encryption = encryption, pretty_encryption = pretty_encryption })
+      local signal_strength = math.floor(wifi.quality * 100 / wifi.quality_max)
+      table.insert(result, { name = name, encryption = encryption, pretty_encryption = pretty_encryption, signal_strength = signal_strength })
     end
   end
 
