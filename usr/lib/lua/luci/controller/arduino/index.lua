@@ -87,6 +87,14 @@ local function set_first(cursor, config, type, option, value)
   end)
 end
 
+local function set_list_first(cursor, config, type, option, value)
+  cursor:foreach(config, type, function(s)
+    if s[".type"] == type then
+      cursor:set_list(config, s[".name"], option, value)
+    end
+  end)
+end
+
 local function delete_first(cursor, config, type, option, value)
   cursor:foreach(config, type, function(s)
     if s[".type"] == type then
@@ -441,7 +449,7 @@ function config_post()
   uci:load("system")
   uci:load("wireless")
   uci:load("network")
-  --uci:load("dhcp")
+  uci:load("dhcp")
   uci:load("arduino")
 
   if not_nil_or_empty(params["password"]) then
@@ -502,6 +510,7 @@ function config_post()
     uci:delete("network", "lan", "ipaddr")
     uci:delete("network", "lan", "netmask")
     --delete_first(uci, "dhcp", "dnsmasq", "address")
+    set_list_first(uci, "dhcp", "dnsmasq", "interface", "lo")
 
     uci:set("network", "lan", "proto", "dhcp")
     uci:set("arduino", "lan", "proto", "dhcp")
@@ -512,7 +521,7 @@ function config_post()
   uci:commit("system")
   uci:commit("wireless")
   uci:commit("network")
-  --uci:commit("dhcp")
+  uci:commit("dhcp")
   uci:commit("arduino")
 
   --[[
