@@ -425,9 +425,11 @@ function config_get()
   uci:load("arduino")
   local rest_api_is_secured = uci:get_first("arduino", "arduino", "secure_rest_api") == "true"
 
+  local zonename = get_first(uci, "system", "system", "zonename")
+  zonename = zonename or get_first(uci, "system", "system", "timezone_desc")
   local ctx = {
     hostname = get_first(uci, "system", "system", "hostname"),
-    timezone_desc = get_first(uci, "system", "system", "timezone_desc"),
+    zonename = zonename,
     wifi = {
       ssid = get_first(uci, "arduino", "wifi-iface", "ssid"),
       encryption = get_first(uci, "arduino", "wifi-iface", "encryption"),
@@ -465,21 +467,22 @@ function config_post()
     set_first(uci, "system", "system", "hostname", hostname)
   end
 
-  if params["timezone_desc"] then
-    local function find_tz_regdomain(timezone_desc)
+  if params["zonename"] then
+    local function find_tz_regdomain(zonename)
       local tz_regdomains = csv_to_array(luci.util.exec("zcat /etc/arduino/wifi_timezones.csv.gz"), timezone_file_parse_callback)
       for i, tz in ipairs(tz_regdomains) do
-        if tz["label"] == timezone_desc then
+        if tz["label"] == zonename then
           return tz
         end
       end
       return nil
     end
 
-    local tz_regdomain = find_tz_regdomain(params["timezone_desc"])
+    local tz_regdomain = find_tz_regdomain(params["zonename"])
     if tz_regdomain then
       set_first(uci, "system", "system", "timezone", tz_regdomain.timezone)
-      set_first(uci, "system", "system", "timezone_desc", params["timezone_desc"])
+      set_first(uci, "system", "system", "zonename", params["zonename"])
+      delete_first(uci, "system", "system", "timezone_desc")
       params["wifi.country"] = tz_regdomain.code
     end
   end
