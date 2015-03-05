@@ -1,20 +1,16 @@
 --[[
 This file is part of YunWebUI.
-
 YunWebUI is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
-
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
 As a special exception, you may use this file as part of a free software
 library without restriction.  Specifically, if other files instantiate
 templates or use macros or inline functions from this file, or you compile
@@ -23,7 +19,6 @@ file does not by itself cause the resulting executable to be covered by
 the GNU General Public License.  This exception does not however
 invalidate any other reasons why the executable file might be covered by
 the GNU General Public License.
-
 Copyright 2013 Arduino LLC (http://www.arduino.cc/)
 ]]
 
@@ -279,6 +274,7 @@ local function parse_date_from_command(command)
 end
 
 function homepage()
+  local uci = luci.model.uci.cursor()
   local wa = require("luci.tools.webadmin")
   local network = luci.util.exec("LANG=en ifconfig | grep HWaddr")
   network = string.split(network, "\n")
@@ -397,6 +393,14 @@ function homepage()
         ctx["update_file_newer"] = os.difftime(ctx["current_build_date"], update_file_build_date) < 0
       end
     end
+  end
+
+  local default_target = uci:get_first("arduino","arduino","default_target");
+  
+  if default_target and #default_target > 1 and default_target == "arduino_yun" then
+    ctx["default_target"] = true
+  else
+    ctx["default_target"] = false
   end
 
   luci.template.render("arduino/homepage", ctx)
@@ -618,6 +622,10 @@ function toogle_rest_api_security()
 end
 
 function upload_sketch()
+
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+
   local sketch_hex = "/tmp/sketch.hex"
 
   local chunk_number = 0
@@ -638,15 +646,23 @@ function upload_sketch()
   end)
 
   local sketch = luci.http.formvalue("sketch_hex")
-  if sketch and #sketch > 0 and rfind(sketch, ".hex") > 1 then
-    local merge_output = luci.util.exec("merge-sketch-with-bootloader.lua " .. sketch_hex .. " 2>&1")
+  local board = luci.http.formvalue("board");
+  local cmd = uci:get_first("arduino","arduino",board)
+  
+  if sketch and #sketch > 0 and cmd and #cmd > 1 then
+    
+    if board == "arduino_yun" then
+      local merge_output = luci.util.exec("merge-sketch-with-bootloader.lua " .. sketch_hex .. " 2>&1")
+    end
+    
     local kill_bridge_output = luci.util.exec("kill-bridge 2>&1")
-    local run_avrdude_output = luci.util.exec("run-avrdude /tmp/sketch.hex '-q -q' 2>&1")
+    local run_avrdude_output = luci.util.exec(cmd);
 
     local ctx = {
-      merge_output = merge_output,
+      
       kill_bridge_output = kill_bridge_output,
       run_avrdude_output = run_avrdude_output
+    
     }
     luci.template.render("arduino/upload", ctx)
   else

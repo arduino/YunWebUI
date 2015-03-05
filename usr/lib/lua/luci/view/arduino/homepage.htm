@@ -87,7 +87,7 @@ http.prepare_content("text/html; charset=utf-8")
                 <span class="val"><%= data["rx"] %></span>
               </span>
               <span class="row">
-                <span class="desc">Transmitted</span>
+                <span class="desc">Trasmitted</span>
                 <span class="val"><%= data["tx"] %></span>
               </span>
             </p>
@@ -153,8 +153,23 @@ http.prepare_content("text/html; charset=utf-8")
             <div class="input_container">
               <input id="sketch" name="sketch_hex" type="file">
             </div>
+            <% if not default_target then %>
+	        <div class="input container">
+        	  <select name="board">
+		  <option value="arduino_avr_uno">Arduino Uno</option>
+		  <option value="arduino_avr_leonardo">Arduino Leonardo</option>
+		  <option value="arduino_avr_mega">Arduino Mega 2560/ Mega ADK</option>
+		  <option value="arduino_avr_diecimila">Arduino Diecimila/Duemilanove</option>
+		  <option value="arduino_sam_due">Arduino Due</option>
+	          <option value="arduino_sam_zero">Arduino Zero</option>		
+	        </select>
+	      </div>
+            <% else %>
+              <input type="hidden" name="board" value="arduino_yun"> 
+	    <% end %>
             <p><br/></p>
           </li>
+
           <li>
             <div class="input_container">
               <input id="upload_button" class="btTxt submit saveForm" type="submit" name="button" value="Upload">

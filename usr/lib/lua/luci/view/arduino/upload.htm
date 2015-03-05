@@ -53,12 +53,6 @@ http.prepare_content("text/html; charset=utf-8")
       <h2>Uploading sketch...</h2>
     </div>
     <div class="wrapper divide">
-      <% if string.len(merge_output) > 0 then %>
-      <p>Error while merging sketch with bootloader</p>
-      <textarea rows="5" readonly="readonly"><%= merge_output %></textarea>
-      <% else %>
-      <p>Merged sketch with bootloader.</p>
-      <% end %>
 
       <% if string.len(kill_bridge_output) > 0 then %>
       <p>Error while killing bridge</p>
@@ -68,10 +62,8 @@ http.prepare_content("text/html; charset=utf-8")
       <% end %>
 
       <% if string.len(run_avrdude_output) > 0 then %>
-      <p>Error while running avrdude</p>
+      <p>Upload output</p>
       <textarea rows="5" readonly="readonly"><%= run_avrdude_output %></textarea>
-      <% else %>
-      <p>Sketch uploaded succesfully.</p>
       <% end %>
     </div>
     <div class="wrapper divide">
