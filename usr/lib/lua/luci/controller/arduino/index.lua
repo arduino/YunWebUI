@@ -465,6 +465,8 @@ function config_post()
   if not_nil_or_empty(params["hostname"]) then
     local hostname = string.gsub(params["hostname"], " ", "_")
     set_first(uci, "system", "system", "hostname", hostname)
+    uci:set("network", "lan", "hostname", hostname)
+    uci:set("network", "wan", "hostname", hostname)
   end
 
   if params["zonename"] then
