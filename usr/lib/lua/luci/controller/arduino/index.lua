@@ -661,12 +661,13 @@ function upload_sketch_silent()
 
     if run_programmer_output == 0 then
       luci.http.status(200)
-      return
     else
-      luci.http.status(417)
-      return
+      luci.http.status(502)
     end
+  else
+    luci.http.status(400)
   end
+  return
 end
 
 
