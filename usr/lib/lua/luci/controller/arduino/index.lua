@@ -228,6 +228,7 @@ function index()
   make_entry({ "data", "get" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
   make_entry({ "data", "put" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
   make_entry({ "data", "delete" }, call("storage_send_request"), nil).sysauth = rest_api_sysauth
+  make_entry({ "data", "upload_sketch_silent" }, call("upload_sketch_silent"), nil).sysauth = rest_api_sysauth
   local mailbox_api = node("mailbox")
   mailbox_api.sysauth = rest_api_sysauth
   mailbox_api.sysauth_authenticator = webpanel.sysauth_authenticator
@@ -621,6 +622,54 @@ function toogle_rest_api_security()
   uci:commit("arduino")
 end
 
+function upload_sketch_silent()
+
+  local uci = luci.model.uci.cursor()
+  uci:load("arduino")
+
+  local sketch_hex = "/tmp/sketch.hex"
+
+  local chunk_number = 0
+
+  local fp
+  luci.http.setfilehandler(function(meta, chunk, eof)
+    if not fp then
+      fp = io.open(sketch_hex, "w")
+    end
+    if chunk then
+      chunk_number = chunk_number + 1
+      fp:write(chunk)
+    end
+    if eof then
+      chunk_number = chunk_number + 1
+      fp:close()
+    end
+  end)
+
+  local sketch = luci.http.formvalue("sketch_hex")
+  local board = luci.http.formvalue("board");
+  local cmd = uci:get_first("arduino","arduino",board)
+
+  if sketch and #sketch > 0 and cmd and #cmd > 1 then
+
+    if board == "arduino_yun" then
+      local merge_output = luci.util.exec("merge-sketch-with-bootloader.lua " .. sketch_hex .. " 2>&1")
+    end
+
+    local kill_bridge_output = luci.util.exec("kill-bridge 2>&1")
+    local run_programmer_output = luci.sys.call(cmd .. " > /dev/null");
+
+    if run_programmer_output == 0 then
+      luci.http.status(200)
+      return
+    else
+      luci.http.status(417)
+      return
+    end
+  end
+end
+
+
 function upload_sketch()
 
   local uci = luci.model.uci.cursor()
@@ -648,7 +697,7 @@ function upload_sketch()
   local sketch = luci.http.formvalue("sketch_hex")
   local board = luci.http.formvalue("board");
   local cmd = uci:get_first("arduino","arduino",board)
-  
+
   if sketch and #sketch > 0 and cmd and #cmd > 1 then
     
     if board == "arduino_yun" then
