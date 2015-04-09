@@ -657,7 +657,7 @@ function upload_sketch_silent()
     end
 
     local kill_bridge_output = luci.util.exec("kill-bridge 2>&1")
-    local run_programmer_output = luci.sys.call(cmd .. " > /dev/null");
+    local run_programmer_output = luci.sys.call(cmd .. " > /dev/null 2>&1");
 
     if run_programmer_output == 0 then
       luci.http.status(200)
