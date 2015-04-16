@@ -147,7 +147,7 @@ http.prepare_content("text/html; charset=utf-8")
         For more information about how to obtain the <strong>.hex</strong> file of your sketch, visit <a target="_blank" href="http://arduino.cc/en/Hacking/BuildProcess">this page</a>.
       </p>
       <p>
-      <form method="post" action="<%= pcdata(controller .. '/webpanel/upload_sketch') %>" enctype="multipart/form-data">
+      <form method="post" action="<%= pcdata(controller .. '/webpanel/upload_sketch') %>" enctype="multipart/form-data" id="upload-sketch-form">
         <ul>
           <li>
             <div class="input_container">

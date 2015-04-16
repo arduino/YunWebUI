@@ -171,7 +171,7 @@ function onclick_upload() {
 
 document.body.onload = function() {
   if ($("#progress_bar_upload").length > 0) {
-    $("#upload_button").click(onclick_upload);
+    $("#upload-sketch-form").submit(onclick_upload);
   }
 
   if (document.getElementById("username")) {
