@@ -6,7 +6,7 @@ It's a custom [LuCI](http://luci.subsignal.org/trac) controller.
 
 It has two goals:
 * hide all the complexity (and power) offered by LuCI in order to give users a fast and straightforward experience in setting up their Yún.
-* provide an easy to use REST (web) API. Yún REST API is a "web way" to talk to your sketch through your browser: for example, you can query sensors value, send commands and share data between.
+* provide an easy to use REST (web) API. Yún REST API is a "web way" to talk to your sketch through your browser: for example, you can query sensors value, send commands and share data.
 
 ## Development: the easy way
 
@@ -48,3 +48,13 @@ If everything ran smoothly, you're now ready to start the webpanel. Type the las
 make runhttpd
 ```
 and finally go to [http://localhost:8080/luci/webpanel](http://localhost:8080/luci/webpanel)
+
+## Packing
+
+Packing webpanel requires uglifying js and css files. You can install `uglifyjs` and `uglifycss` with:
+```bash
+sudo npm install uglify-js@1.3.5 -g
+sudo npm install uglifycss -g
+```
+
+Please use uglify-js at version 1.3.5: 1.x preserves license headers, while 2.x does not.
