@@ -396,8 +396,8 @@ function homepage()
     end
   end
 
-  local default_target = uci:get_first("arduino","arduino","default_target");
-  
+  local default_target = uci:get_first("arduino", "arduino", "default_target");
+
   if default_target and #default_target > 1 and default_target == "arduino_yun" then
     ctx["default_target"] = true
   else
@@ -648,7 +648,7 @@ function upload_sketch_silent()
 
   local sketch = luci.http.formvalue("sketch_hex")
   local board = luci.http.formvalue("board");
-  local cmd = uci:get_first("arduino","arduino",board)
+  local cmd = uci:get_first("arduino", "arduino", board)
 
   if sketch and #sketch > 0 and cmd and #cmd > 1 then
 
@@ -697,22 +697,20 @@ function upload_sketch()
 
   local sketch = luci.http.formvalue("sketch_hex")
   local board = luci.http.formvalue("board");
-  local cmd = uci:get_first("arduino","arduino",board)
+  local cmd = uci:get_first("arduino", "arduino", board)
 
   if sketch and #sketch > 0 and cmd and #cmd > 1 then
-    
+
     if board == "arduino_yun" then
       local merge_output = luci.util.exec("merge-sketch-with-bootloader.lua " .. sketch_hex .. " 2>&1")
     end
-    
+
     local kill_bridge_output = luci.util.exec("kill-bridge 2>&1")
     local run_avrdude_output = luci.util.exec(cmd);
 
     local ctx = {
-      
       kill_bridge_output = kill_bridge_output,
       run_avrdude_output = run_avrdude_output
-    
     }
     luci.template.render("arduino/upload", ctx)
   else
