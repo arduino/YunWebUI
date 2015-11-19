@@ -626,10 +626,16 @@ span.row span.val {
 
 	#logophone {
 		display: block;
-		width: 14em;
+		width: 30em;
 		margin: 0 auto;
 	}
 
+}
+
+@media (max-width: 500px) {
+	#logophone {
+		width: 17em;
+	}
 }
 
 @media (min-width: 1200px) {
@@ -758,4 +764,15 @@ span.row span.val {
 	100% {
 		background-position: 60px 0;
 	}
+}
+
+.welcome {
+	text-transform: uppercase;
+}
+
+.password {
+	padding-left: 0;
+	text-transform: none;
+	width: 100%;
+	font-size: 1em;
 }

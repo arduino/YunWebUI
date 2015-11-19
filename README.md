@@ -1,4 +1,4 @@
-# Arduino Yún Web panel
+# Arduino/Genuino Yún 101 or Yún Shield Web panel
 
 This is the web configuration panel and REST api provider you find running on your Yún at http://arduino.local/
 

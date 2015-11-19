@@ -43,14 +43,14 @@ http.prepare_content("text/html; charset=utf-8")
   <div id="header">
     <div class="wrapper">
       <h1>Y&uacute;n &#20113;</h1>
-      <div id="logo"><a href="<%= pcdata(controller .. '/webpanel') %>"><img src="<%= resource %>/arduino/logo.png" alt="Y&uacute;n"/></a></div>
-      <div id="logophone"><a href="<%= pcdata(controller .. '/webpanel') %>"><img src="<%= resource %>/arduino/logo_phone.png" alt="Y&uacute;n"/></a></div>
+      <div id="logo"><a href="<%= pcdata(controller .. '/webpanel') %>"><img src="<%= resource %>/arduino/logo.svg" alt="Y&uacute;n"/></a></div>
+      <div id="logophone"><a href="<%= pcdata(controller .. '/webpanel') %>"><img src="<%= resource %>/arduino/logo_phone.svg" alt="Y&uacute;n"/></a></div>
     </div>
   </div>
   <div id="content">
     <div class="wrapper">
       <div id="welcome_container">
-        <h2>Welcome to <strong><%= hostname %></strong>, your Arduino Y&uacute;n</h2>
+        <h2>Welcome to <strong><%= hostname %></strong></h2>
       </div>
       <div id="configurebtn_container">
         <form method="get" action="<%= pcdata(controller .. '/webpanel/config') %>">
@@ -144,7 +144,7 @@ http.prepare_content("text/html; charset=utf-8")
       <h3>Upload sketch</h3>
       <p class="description">Select a <strong>.hex</strong> file (compiled sketch) and upload it on the microcontroller of this Y&uacute;n.
         <br>
-        For more information about how to obtain the <strong>.hex</strong> file of your sketch, visit <a target="_blank" href="http://arduino.cc/en/Hacking/BuildProcess">this page</a>.
+        For more information about how to obtain the <strong>.hex</strong> file of your sketch, visit <a target="_blank" href="https://www.arduino.cc/en/Hacking/BuildProcess">this page</a>.
       </p>
       <p>
       <form method="post" action="<%= pcdata(controller .. '/webpanel/upload_sketch') %>" enctype="multipart/form-data" id="upload-sketch-form">
@@ -154,19 +154,19 @@ http.prepare_content("text/html; charset=utf-8")
               <input id="sketch" name="sketch_hex" type="file">
             </div>
             <% if not default_target then %>
-	        <div class="input container">
-        	  <select name="board">
-		  <option value="arduino_avr_uno">Arduino Uno</option>
-		  <option value="arduino_avr_leonardo">Arduino Leonardo</option>
-		  <option value="arduino_avr_mega">Arduino Mega 2560/ Mega ADK</option>
-		  <option value="arduino_avr_diecimila">Arduino Diecimila/Duemilanove</option>
-		  <option value="arduino_sam_due">Arduino Due</option>
-	          <option value="arduino_sam_zero">Arduino Zero</option>		
-	        </select>
-	      </div>
+            <div class="input container">
+              <select name="board">
+                <option value="arduino_avr_uno">Arduino/Genuino Uno</option>
+                <option value="arduino_avr_leonardo">Arduino Leonardo</option>
+                <option value="arduino_avr_mega">Arduino Mega 2560/ Mega ADK</option>
+                <option value="arduino_avr_diecimila">Arduino Diecimila/Duemilanove</option>
+                <option value="arduino_sam_due">Arduino Due</option>
+                <option value="arduino_sam_zero">Arduino/Genuino Zero</option>
+              </select>
+            </div>
             <% else %>
-              <input type="hidden" name="board" value="arduino_yun"> 
-	    <% end %>
+            <input type="hidden" name="board" value="arduino_yun">
+            <% end %>
             <p><br/></p>
           </li>
 
