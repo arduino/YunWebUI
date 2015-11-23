@@ -18,6 +18,7 @@ tar --transform "s|$PREFIX/|luci-app-arduino-webpanel-$VERSION/|g" -cjv -f luci-
   $PREFIX/www/luci-static/resources/arduino/*.ugly.* \
   $PREFIX/www/luci-static/resources/arduino/*.min.* \
   $PREFIX/www/luci-static/resources/arduino/*.png \
+  $PREFIX/www/luci-static/resources/arduino/*.svg \
   $PREFIX/www/keystore_manager_example \
   $PREFIX/usr
 
